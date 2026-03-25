@@ -48,9 +48,33 @@ export function CommunityFeed() {
   if (authError) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
-        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-4 text-destructive">
-          <AlertCircle className="h-5 w-5" />
-          <p>Unable to connect. Please check your internet connection and try again.</p>
+        <div className="max-w-md space-y-4 text-center">
+          <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-destructive/10">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+          </div>
+          <h2 className="text-xl font-semibold text-foreground">Firebase Setup Required</h2>
+          <p className="text-muted-foreground">
+            {authError.includes('invalid-api-key') 
+              ? 'The Firebase API key appears to be invalid or Firebase services are not enabled.'
+              : authError}
+          </p>
+          <div className="rounded-lg bg-muted p-4 text-left text-sm">
+            <p className="font-medium mb-2">To fix this:</p>
+            <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+              <li>Go to Firebase Console</li>
+              <li>Enable <strong>Anonymous Authentication</strong></li>
+              <li>Create a <strong>Firestore Database</strong></li>
+              <li>Verify the API key has no domain restrictions</li>
+            </ol>
+          </div>
+          <a 
+            href="https://console.firebase.google.com/project/citymate-1656a/authentication/providers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Open Firebase Console
+          </a>
         </div>
       </div>
     )

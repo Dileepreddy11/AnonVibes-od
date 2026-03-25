@@ -2,16 +2,20 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { signInAnonymously, onAuthStateChanged, type User } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
+import { auth, initError } from '@/lib/firebase'
 import { getOrCreateUsername } from '@/lib/username'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [username, setUsername] = useState<string>('')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initError)
 
   const signIn = useCallback(async () => {
+    if (!auth) {
+      setError('Firebase not initialized')
+      return
+    }
     try {
       setError(null)
       await signInAnonymously(auth)
@@ -21,6 +25,12 @@ export function useAuth() {
   }, [])
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false)
+      setError(initError || 'Firebase not initialized. Please check your configuration.')
+      return
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser)
