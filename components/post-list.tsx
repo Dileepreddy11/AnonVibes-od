@@ -76,9 +76,17 @@ export function PostList({
   }
 
   if (error) {
+    const isIndexError = error.includes('index')
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <p className="mb-4 text-destructive">Something went wrong</p>
+        <p className="mb-2 text-destructive font-medium">
+          {isIndexError ? 'Database setup needed' : 'Something went wrong'}
+        </p>
+        <p className="mb-4 text-sm text-muted-foreground text-center max-w-md">
+          {isIndexError 
+            ? 'Firestore needs an index for this query. Click the link in the console error to create it automatically.'
+            : error}
+        </p>
         <Button variant="outline" onClick={() => window.location.reload()}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Try again

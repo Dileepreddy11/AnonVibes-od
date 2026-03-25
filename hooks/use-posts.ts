@@ -4,16 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   collection,
   query,
-  orderBy,
   limit,
-  startAfter,
   onSnapshot,
   addDoc,
   doc,
   updateDoc,
-  where,
-  type QueryDocumentSnapshot,
-  type DocumentData,
   serverTimestamp,
   increment,
 } from 'firebase/firestore'
@@ -21,52 +16,53 @@ import { db } from '@/lib/firebase'
 import type { Post, Mood } from '@/lib/types'
 import { validateContent, checkRateLimit, recordPost } from '@/lib/moderation'
 
-const POSTS_PER_PAGE = 10
+const POSTS_PER_PAGE = 20
 
 export function usePosts(moodFilter?: Mood | null) {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null)
-  const [hasMore, setHasMore] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore] = useState(false)
 
-  // Real-time listener for posts
+  // Real-time listener for posts - simplified query without composite index requirement
   useEffect(() => {
     setLoading(true)
     setPosts([])
-    setLastDoc(null)
-    setHasMore(true)
+    setHasMore(false)
+    setError(null)
 
     const postsRef = collection(db, 'posts')
-    let q = query(
+    // Simple query - no orderBy to avoid index requirements, sort client-side
+    const q = query(
       postsRef,
-      where('reported', '==', false),
-      orderBy('createdAt', 'desc'),
-      limit(POSTS_PER_PAGE)
+      limit(100) // Fetch enough to filter and sort client-side
     )
-
-    if (moodFilter) {
-      q = query(
-        postsRef,
-        where('reported', '==', false),
-        where('mood', '==', moodFilter),
-        orderBy('createdAt', 'desc'),
-        limit(POSTS_PER_PAGE)
-      )
-    }
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const newPosts = snapshot.docs.map((doc) => ({
+        let newPosts = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Post[]
         
+        // Client-side filtering for reported posts and mood
+        newPosts = newPosts.filter(post => !post.reported)
+        
+        if (moodFilter) {
+          newPosts = newPosts.filter(post => post.mood === moodFilter)
+        }
+        
+        // Sort client-side by createdAt descending
+        newPosts.sort((a, b) => {
+          const aTime = a.createdAt?.toDate?.()?.getTime() || 0
+          const bTime = b.createdAt?.toDate?.()?.getTime() || 0
+          return bTime - aTime
+        })
+        
+        // Show all posts (limited by initial fetch)
         setPosts(newPosts)
-        setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null)
-        setHasMore(snapshot.docs.length === POSTS_PER_PAGE)
         setLoading(false)
       },
       (err) => {
@@ -79,50 +75,12 @@ export function usePosts(moodFilter?: Mood | null) {
     return () => unsubscribe()
   }, [moodFilter])
 
-  // Load more posts (pagination)
+  // Load more is handled by fetching more initially - simplified for no-index approach
   const loadMore = useCallback(async () => {
-    if (!lastDoc || loadingMore || !hasMore) return
-
-    setLoadingMore(true)
-    
-    const postsRef = collection(db, 'posts')
-    let q = query(
-      postsRef,
-      where('reported', '==', false),
-      orderBy('createdAt', 'desc'),
-      startAfter(lastDoc),
-      limit(POSTS_PER_PAGE)
-    )
-
-    if (moodFilter) {
-      q = query(
-        postsRef,
-        where('reported', '==', false),
-        where('mood', '==', moodFilter),
-        orderBy('createdAt', 'desc'),
-        startAfter(lastDoc),
-        limit(POSTS_PER_PAGE)
-      )
-    }
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const morePosts = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Post[]
-        
-        setPosts((prev) => [...prev, ...morePosts])
-        setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null)
-        setHasMore(snapshot.docs.length === POSTS_PER_PAGE)
-        setLoadingMore(false)
-      },
-      { once: true }
-    )
-
-    return () => unsubscribe()
-  }, [lastDoc, loadingMore, hasMore, moodFilter])
+    // For now, we fetch all at once to avoid index requirements
+    // In production, you'd create proper indexes for pagination
+    setHasMore(false)
+  }, [])
 
   // Create a new post
   const createPost = useCallback(

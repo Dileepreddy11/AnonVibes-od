@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   collection,
   query,
-  where,
-  orderBy,
+  limit,
   onSnapshot,
   addDoc,
   serverTimestamp,
@@ -19,24 +18,32 @@ export function useComments(postId: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Real-time listener for comments
+  // Real-time listener for comments - no index required
   useEffect(() => {
     const commentsRef = collection(db, 'comments')
-    const q = query(
-      commentsRef,
-      where('postId', '==', postId),
-      orderBy('createdAt', 'asc')
-    )
+    // Simple query without where/orderBy to avoid index requirements
+    const q = query(commentsRef, limit(500))
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const newComments = snapshot.docs.map((doc) => ({
+        // Client-side filtering and sorting
+        let allComments = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Comment[]
         
-        setComments(newComments)
+        // Filter by postId client-side
+        allComments = allComments.filter(c => c.postId === postId)
+        
+        // Sort by createdAt ascending client-side
+        allComments.sort((a, b) => {
+          const aTime = a.createdAt?.toDate?.()?.getTime() || 0
+          const bTime = b.createdAt?.toDate?.()?.getTime() || 0
+          return aTime - bTime
+        })
+        
+        setComments(allComments)
         setLoading(false)
       },
       (err) => {

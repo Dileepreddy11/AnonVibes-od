@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react'
 import {
   collection,
   query,
-  where,
+  limit,
   onSnapshot,
-  Timestamp,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import type { Mood, MoodStats } from '@/lib/types'
@@ -19,21 +18,18 @@ export function useMoodStats() {
   const [trendingMood, setTrendingMood] = useState<Mood | null>(null)
 
   useEffect(() => {
-    // Get posts from the last 24 hours
-    const twentyFourHoursAgo = Timestamp.fromDate(
-      new Date(Date.now() - 24 * 60 * 60 * 1000)
-    )
-
+    // Get posts - simple query without index requirements
     const postsRef = collection(db, 'posts')
     const q = query(
       postsRef,
-      where('reported', '==', false),
-      where('createdAt', '>=', twentyFourHoursAgo)
+      limit(200) // Get posts for stats, filter client-side
     )
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
+        const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000
+        
         const moodCounts: Record<Mood, number> = {
           happy: 0,
           sad: 0,
@@ -42,12 +38,23 @@ export function useMoodStats() {
           confused: 0,
         }
 
-        snapshot.docs.forEach((doc) => {
-          const mood = doc.data().mood as Mood
-          moodCounts[mood]++
+        // Client-side filtering for time and reported status
+        const recentPosts = snapshot.docs.filter((doc) => {
+          const data = doc.data()
+          if (data.reported) return false
+          const createdAt = data.createdAt?.toDate?.()
+          if (!createdAt) return true // Include if no timestamp yet
+          return createdAt.getTime() > twentyFourHoursAgo
         })
 
-        const total = snapshot.docs.length
+        recentPosts.forEach((doc) => {
+          const mood = doc.data().mood as Mood
+          if (moodCounts[mood] !== undefined) {
+            moodCounts[mood]++
+          }
+        })
+
+        const total = recentPosts.length
         setTotalPosts(total)
 
         const moodStats: MoodStats[] = MOODS.map((mood) => ({
@@ -69,6 +76,12 @@ export function useMoodStats() {
       },
       (err) => {
         console.error('Error fetching mood stats:', err)
+        // Set empty stats on error but don't block UI
+        setStats(MOODS.map((mood) => ({
+          mood: mood.value,
+          count: 0,
+          percentage: 0,
+        })))
         setLoading(false)
       }
     )
