@@ -1,37 +1,141 @@
-// Basic bad word filter - extend as needed
+// Comprehensive bad word filter
 const badWords = [
-  'spam', 'scam', 'fake', 'hate',
-  // Add more words as needed
+  // Profanity
+  'fuck', 'fucking', 'fucked', 'fucker', 'fck', 'f*ck', 'fuk',
+  'shit', 'sh*t', 'bullshit', 'shitting',
+  'ass', 'asshole', 'a$$',
+  'bitch', 'b*tch', 'bitches',
+  'damn', 'dammit',
+  'crap', 'dick', 'd*ck', 'cock', 'c*ck',
+  'pussy', 'p*ssy', 'cunt', 'c*nt',
+  'bastard', 'whore', 'slut',
+  // Sexual content
+  'sex', 'sexy', 's*x', 'porn', 'porno', 'p*rn',
+  'hardcore', 'deepfuck', 'xxx', 'nude', 'naked',
+  'boobs', 'tits', 'penis', 'vagina',
+  'masturbate', 'orgasm', 'horny',
+  // Hate/violence
+  'hate', 'kill', 'murder', 'rape', 'racist',
+  'nigger', 'nigga', 'faggot', 'fag',
+  // Spam/scam
+  'spam', 'scam', 'fake', 'fraud',
+  // Drugs
+  'cocaine', 'heroin', 'meth', 'weed', 'marijuana',
 ]
 
+// Common Indian and international names to filter (optional - can be disabled)
+const commonNames = [
+  // Indian names
+  'suresh', 'ramesh', 'mahesh', 'rajesh', 'virat', 'rohit', 'sachin',
+  'priya', 'anjali', 'pooja', 'neha', 'deepika', 'ananya',
+  'amit', 'anil', 'vijay', 'ravi', 'kumar', 'sharma', 'singh',
+  'rahul', 'akash', 'arjun', 'karthik', 'arun', 'sanjay',
+  // Common western names
+  'john', 'james', 'michael', 'david', 'robert', 'william',
+  'mary', 'jennifer', 'linda', 'sarah', 'jessica', 'emily',
+]
+
+// Create regex for bad words (case insensitive, word boundaries)
 const badWordRegex = new RegExp(`\\b(${badWords.join('|')})\\b`, 'gi')
+
+// Create regex for names (case insensitive, word boundaries)
+const nameRegex = new RegExp(`\\b(${commonNames.join('|')})\\b`, 'gi')
 
 export function containsBadWords(text: string): boolean {
   return badWordRegex.test(text)
+}
+
+export function containsNames(text: string): boolean {
+  return nameRegex.test(text)
+}
+
+export function getBadWordsInText(text: string): string[] {
+  const matches = text.match(badWordRegex)
+  return matches ? [...new Set(matches.map(m => m.toLowerCase()))] : []
+}
+
+export function getNamesInText(text: string): string[] {
+  const matches = text.match(nameRegex)
+  return matches ? [...new Set(matches.map(m => m.toLowerCase()))] : []
 }
 
 export function sanitizeContent(text: string): string {
   return text.replace(badWordRegex, '***')
 }
 
-export function validateContent(content: string): { valid: boolean; error?: string } {
+export interface ContentValidation {
+  valid: boolean
+  error?: string
+  hasBadWords: boolean
+  hasNames: boolean
+  badWordsFound: string[]
+  namesFound: string[]
+}
+
+export function validateContent(content: string): ContentValidation {
+  const result: ContentValidation = {
+    valid: true,
+    hasBadWords: false,
+    hasNames: false,
+    badWordsFound: [],
+    namesFound: [],
+  }
+
   if (!content.trim()) {
-    return { valid: false, error: 'Content cannot be empty' }
+    return { ...result, valid: false, error: 'Content cannot be empty' }
   }
   
   if (content.length < 5) {
-    return { valid: false, error: 'Content is too short (minimum 5 characters)' }
+    return { ...result, valid: false, error: 'Content is too short (minimum 5 characters)' }
   }
   
   if (content.length > 1000) {
-    return { valid: false, error: 'Content is too long (maximum 1000 characters)' }
+    return { ...result, valid: false, error: 'Content is too long (maximum 1000 characters)' }
   }
   
-  if (containsBadWords(content)) {
-    return { valid: false, error: 'Please keep the content supportive and respectful' }
+  const badWordsFound = getBadWordsInText(content)
+  const namesFound = getNamesInText(content)
+  
+  result.hasBadWords = badWordsFound.length > 0
+  result.hasNames = namesFound.length > 0
+  result.badWordsFound = badWordsFound
+  result.namesFound = namesFound
+
+  if (result.hasBadWords) {
+    return { 
+      ...result, 
+      valid: false, 
+      error: 'Please avoid using inappropriate language' 
+    }
   }
   
-  return { valid: true }
+  if (result.hasNames) {
+    return { 
+      ...result, 
+      valid: false, 
+      error: 'Please avoid using real names to protect privacy' 
+    }
+  }
+  
+  return result
+}
+
+// Real-time content check (for showing warnings while typing)
+export function checkContentRealtime(content: string): {
+  hasBadWords: boolean
+  hasNames: boolean
+  badWordsFound: string[]
+  namesFound: string[]
+} {
+  const badWordsFound = getBadWordsInText(content)
+  const namesFound = getNamesInText(content)
+  
+  return {
+    hasBadWords: badWordsFound.length > 0,
+    hasNames: namesFound.length > 0,
+    badWordsFound,
+    namesFound,
+  }
 }
 
 // Rate limiting for posts (stored in localStorage)
