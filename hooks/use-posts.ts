@@ -9,14 +9,17 @@ import {
   addDoc,
   doc,
   updateDoc,
+  deleteDoc,
+  getDoc,
   serverTimestamp,
   increment,
+  arrayUnion,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import type { Post, Mood } from '@/lib/types'
-import { validateContent, checkRateLimit, recordPost } from '@/lib/moderation'
+import { validateContent, checkRateLimit, recordPost, REPORT_THRESHOLD, type ReportReason } from '@/lib/moderation'
 
-const POSTS_PER_PAGE = 20
+const POSTS_PER_PAGE = 100
 
 export function usePosts(moodFilter?: Mood | null) {
   const [posts, setPosts] = useState<Post[]>([])
@@ -25,7 +28,6 @@ export function usePosts(moodFilter?: Mood | null) {
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore] = useState(false)
 
-  // Real-time listener for posts - simplified query without composite index requirement
   useEffect(() => {
     setLoading(true)
     setPosts([])
@@ -33,35 +35,31 @@ export function usePosts(moodFilter?: Mood | null) {
     setError(null)
 
     const postsRef = collection(db, 'posts')
-    // Simple query - no orderBy to avoid index requirements, sort client-side
-    const q = query(
-      postsRef,
-      limit(100) // Fetch enough to filter and sort client-side
-    )
+    const q = query(postsRef, limit(POSTS_PER_PAGE))
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
         let newPosts = snapshot.docs.map((doc) => ({
           id: doc.id,
+          reportCount: 0,
+          reportedBy: [],
           ...doc.data(),
         })) as Post[]
         
-        // Client-side filtering for reported posts and mood
+        // Filter out posts that are hidden (reported flag = true means hidden)
         newPosts = newPosts.filter(post => !post.reported)
         
         if (moodFilter) {
           newPosts = newPosts.filter(post => post.mood === moodFilter)
         }
         
-        // Sort client-side by createdAt descending
         newPosts.sort((a, b) => {
           const aTime = a.createdAt?.toDate?.()?.getTime() || 0
           const bTime = b.createdAt?.toDate?.()?.getTime() || 0
           return bTime - aTime
         })
         
-        // Show all posts (limited by initial fetch)
         setPosts(newPosts)
         setLoading(false)
       },
@@ -75,14 +73,10 @@ export function usePosts(moodFilter?: Mood | null) {
     return () => unsubscribe()
   }, [moodFilter])
 
-  // Load more is handled by fetching more initially - simplified for no-index approach
   const loadMore = useCallback(async () => {
-    // For now, we fetch all at once to avoid index requirements
-    // In production, you'd create proper indexes for pagination
     setHasMore(false)
   }, [])
 
-  // Create a new post
   const createPost = useCallback(
     async (content: string, mood: Mood, authorId: string, authorName: string) => {
       const validation = validateContent(content)
@@ -109,6 +103,8 @@ export function usePosts(moodFilter?: Mood | null) {
         },
         commentCount: 0,
         reported: false,
+        reportCount: 0,
+        reportedBy: [],
       }
 
       const docRef = await addDoc(collection(db, 'posts'), postData)
@@ -118,16 +114,65 @@ export function usePosts(moodFilter?: Mood | null) {
     []
   )
 
-  // Report a post
-  const reportPost = useCallback(async (postId: string) => {
+  // Report a post with reason - tracks who reported and hides after threshold
+  const reportPost = useCallback(async (postId: string, userId: string, reason: ReportReason) => {
     const postRef = doc(db, 'posts', postId)
-    await updateDoc(postRef, { reported: true })
+    const postSnap = await getDoc(postRef)
+    
+    if (!postSnap.exists()) {
+      throw new Error('Post not found')
+    }
+    
+    const postData = postSnap.data()
+    const reportedBy = postData.reportedBy || []
+    
+    // Check if user already reported this post
+    if (reportedBy.includes(userId)) {
+      throw new Error('You have already reported this post')
+    }
+    
+    const newReportCount = (postData.reportCount || 0) + 1
+    
+    // Update report count and add user to reportedBy array
+    await updateDoc(postRef, {
+      reportCount: increment(1),
+      reportedBy: arrayUnion(userId),
+      lastReportReason: reason,
+      // Hide post if threshold reached
+      reported: newReportCount >= REPORT_THRESHOLD,
+    })
+    
+    return {
+      newReportCount,
+      isHidden: newReportCount >= REPORT_THRESHOLD,
+    }
   }, [])
 
-  // Increment comment count
+  // Delete a post (only for post owner)
+  const deletePost = useCallback(async (postId: string, userId: string) => {
+    const postRef = doc(db, 'posts', postId)
+    const postSnap = await getDoc(postRef)
+    
+    if (!postSnap.exists()) {
+      throw new Error('Post not found')
+    }
+    
+    const postData = postSnap.data()
+    if (postData.authorId !== userId) {
+      throw new Error('You can only delete your own posts')
+    }
+    
+    await deleteDoc(postRef)
+  }, [])
+
   const incrementCommentCount = useCallback(async (postId: string) => {
     const postRef = doc(db, 'posts', postId)
     await updateDoc(postRef, { commentCount: increment(1) })
+  }, [])
+
+  // Check if user has reported a post
+  const hasUserReported = useCallback((post: Post, userId: string): boolean => {
+    return post.reportedBy?.includes(userId) || false
   }, [])
 
   return {
@@ -139,6 +184,8 @@ export function usePosts(moodFilter?: Mood | null) {
     loadMore,
     createPost,
     reportPost,
+    deletePost,
     incrementCommentCount,
+    hasUserReported,
   }
 }

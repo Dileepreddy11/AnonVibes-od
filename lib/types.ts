@@ -18,6 +18,8 @@ export interface Post {
   }
   commentCount: number
   reported: boolean
+  reportCount: number // Number of reports this post has received
+  reportedBy?: string[] // User IDs who reported this post
 }
 
 export interface Comment {
@@ -27,6 +29,8 @@ export interface Comment {
   authorId: string
   authorName: string
   createdAt: Timestamp
+  parentId?: string | null
+  replies?: Comment[]
 }
 
 export interface Reaction {

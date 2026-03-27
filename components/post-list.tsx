@@ -5,6 +5,7 @@ import { PostCard } from './post-card'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import type { Post } from '@/lib/types'
+import type { ReportReason } from '@/lib/moderation'
 import { MessageSquareOff, RefreshCw } from 'lucide-react'
 
 interface PostListProps {
@@ -16,8 +17,9 @@ interface PostListProps {
   onLoadMore: () => void
   userId: string | undefined
   username: string
-  onReport: (postId: string) => void
+  onReport: (postId: string, reason: ReportReason) => Promise<{ newReportCount: number; isHidden: boolean }>
   onCommentAdded: (postId: string) => void
+  hasUserReported: (post: Post, userId: string) => boolean
 }
 
 export function PostList({
@@ -31,11 +33,11 @@ export function PostList({
   username,
   onReport,
   onCommentAdded,
+  hasUserReported,
 }: PostListProps) {
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
-  // Infinite scroll
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries
@@ -109,7 +111,7 @@ export function PostList({
 
   return (
     <div className="space-y-4">
-      {posts.map((post) => (
+      {posts.map((post, index) => (
         <PostCard
           key={post.id}
           post={post}
@@ -117,10 +119,11 @@ export function PostList({
           username={username}
           onReport={onReport}
           onCommentAdded={onCommentAdded}
+          index={index}
+          hasUserReported={userId ? hasUserReported(post, userId) : false}
         />
       ))}
 
-      {/* Infinite scroll trigger */}
       <div ref={loadMoreRef} className="py-4">
         {loadingMore && (
           <div className="flex justify-center">

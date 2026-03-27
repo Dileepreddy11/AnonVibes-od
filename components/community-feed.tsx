@@ -26,11 +26,17 @@ export function CommunityFeed() {
     createPost,
     reportPost,
     incrementCommentCount,
+    hasUserReported,
   } = usePosts(moodFilter)
 
   const handleCreatePost = async (content: string, mood: Mood) => {
     if (!user) throw new Error('Not authenticated')
     await createPost(content, mood, user.uid, username)
+  }
+
+  const handleReport = async (postId: string, reason: Parameters<typeof reportPost>[2]) => {
+    if (!user) throw new Error('Not authenticated')
+    return reportPost(postId, user.uid, reason)
   }
 
   if (authLoading) {
@@ -106,8 +112,9 @@ export function CommunityFeed() {
               onLoadMore={loadMore}
               userId={user?.uid}
               username={username}
-              onReport={reportPost}
+              onReport={handleReport}
               onCommentAdded={incrementCommentCount}
+              hasUserReported={hasUserReported}
             />
           </div>
 
@@ -139,19 +146,6 @@ export function CommunityFeed() {
                     Report harmful content
                   </li>
                 </ul>
-              </div>
-
-              {/* Helpline Info */}
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-                <p className="text-sm text-muted-foreground">
-                  If you&apos;re in crisis, please reach out:
-                </p>
-                <p className="mt-2 font-semibold text-primary">
-                  988 Suicide & Crisis Lifeline
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Call or text 988 (US)
-                </p>
               </div>
             </div>
           </aside>
