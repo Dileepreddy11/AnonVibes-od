@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Heart, Shield, FileText, Trophy, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Heart, Shield, FileText, Trophy, AlertCircle, Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MyPostsModal } from './my-posts-modal'
 import { LeaderboardModal } from './leaderboard-modal'
@@ -14,6 +14,34 @@ export function Header() {
   const [showMyPosts, setShowMyPosts] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [showReports, setShowReports] = useState(false)
+  const [isDark, setIsDark] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Initialize theme from localStorage and system preference
+  useEffect(() => {
+    setMounted(true)
+    const stored = localStorage.getItem('theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const dark = stored ? stored === 'dark' : prefersDark
+    setIsDark(dark)
+    applyTheme(dark)
+  }, [])
+
+  const applyTheme = (dark: boolean) => {
+    const html = document.documentElement
+    if (dark) {
+      html.classList.add('dark')
+    } else {
+      html.classList.remove('dark')
+    }
+  }
+
+  const toggleTheme = () => {
+    const newDark = !isDark
+    setIsDark(newDark)
+    applyTheme(newDark)
+    localStorage.setItem('theme', newDark ? 'dark' : 'light')
+  }
 
   return (
     <>
@@ -34,6 +62,26 @@ export function Header() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Theme Toggle */}
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className={cn(
+                  'p-2 transition-all duration-300 hover:scale-105',
+                  isDark ? 'hover:bg-yellow-500/10 text-yellow-500' : 'hover:bg-blue-500/10 text-blue-500'
+                )}
+                aria-label="Toggle theme"
+              >
+                {isDark ? (
+                  <Sun className="h-4 w-4 animate-in spin-in-180 duration-300" />
+                ) : (
+                  <Moon className="h-4 w-4 animate-in spin-in-180 duration-300" />
+                )}
+              </Button>
+            )}
+
             {user && (
               <>
                 {/* My Posts */}

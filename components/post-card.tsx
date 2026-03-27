@@ -8,7 +8,7 @@ import type { Post } from '@/lib/types'
 import { REPORT_REASONS, REPORT_THRESHOLD, type ReportReason } from '@/lib/moderation'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
-import { Flag, MoreHorizontal, Users, AlertTriangle, Check } from 'lucide-react'
+import { Flag, MoreHorizontal, Users, AlertTriangle, Check, X } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -180,8 +180,21 @@ export function PostCard({
 
       {/* Report Modal with Reasons */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="mx-4 w-full max-w-sm rounded-xl border bg-card p-6 shadow-lg animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+          <div className="w-full max-w-sm rounded-xl border bg-card p-6 shadow-2xl animate-in zoom-in-95 duration-300 relative">
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setShowReportModal(false)
+                setSelectedReason(null)
+                setReportError(null)
+              }}
+              className="absolute top-4 right-4 p-1 rounded-lg hover:bg-muted transition-colors"
+              aria-label="Close report modal"
+            >
+              <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+            </button>
+
             {reportSuccess ? (
               <div className="text-center py-4 animate-in fade-in zoom-in duration-300">
                 <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
@@ -194,7 +207,7 @@ export function PostCard({
               </div>
             ) : (
               <>
-                <h3 className="mb-2 text-lg font-semibold text-card-foreground flex items-center gap-2">
+                <h3 className="mb-2 text-lg font-semibold text-card-foreground flex items-center gap-2 pr-6">
                   <Flag className="h-5 w-5 text-destructive" />
                   Report this post
                 </h3>
@@ -202,7 +215,7 @@ export function PostCard({
                   Help us understand what&apos;s wrong with this post.
                 </p>
                 
-                <div className="space-y-2 mb-4">
+                <div className="space-y-2 mb-4 max-h-[300px] overflow-y-auto custom-scrollbar">
                   {REPORT_REASONS.map((reason) => (
                     <button
                       key={reason.value}
