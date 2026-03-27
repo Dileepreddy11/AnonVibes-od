@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useComments } from '@/hooks/use-comments'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
@@ -42,6 +42,13 @@ export function CommentSection({
 
   const replyContentCheck = checkContentRealtime(replyContent)
   const hasReplyValidationWarning = replyContentCheck.hasBadWords || replyContentCheck.hasNames
+
+  // Prevent paste
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    e.preventDefault()
+    setError('Copy-paste is disabled')
+    setTimeout(() => setError(null), 2000)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,7 +94,6 @@ export function CommentSection({
     const rootComments: Comment[] = []
     const replyMap = new Map<string, Comment[]>()
 
-    // Separate root comments and replies
     allComments.forEach(comment => {
       if (!comment.parentId) {
         rootComments.push({ ...comment, replies: [] })
@@ -98,10 +104,8 @@ export function CommentSection({
       }
     })
 
-    // Attach replies to their parent comments
     rootComments.forEach(comment => {
       comment.replies = replyMap.get(comment.id) || []
-      // Sort replies by time
       comment.replies.sort((a, b) => {
         const aTime = a.createdAt?.toDate?.()?.getTime() || 0
         const bTime = b.createdAt?.toDate?.()?.getTime() || 0
@@ -121,7 +125,7 @@ export function CommentSection({
       className={cn(
         'rounded-lg p-3 transition-all duration-300',
         isReply ? 'bg-secondary/30 ml-6 border-l-2 border-primary/20' : 'bg-secondary/50',
-        'animate-in fade-in slide-in-from-left-2'
+        'animate-in fade-in slide-in-from-left-2 hover:bg-secondary/70'
       )}
       style={{ animationDelay: `${index * 50}ms` }}
     >
@@ -142,20 +146,18 @@ export function CommentSection({
         {comment.content}
       </p>
       
-      {/* Reply button for root comments only */}
       {!isReply && userId && (
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setReplyingTo({ id: comment.id, name: comment.authorName })}
-          className="h-6 px-2 text-xs text-muted-foreground hover:text-primary"
+          className="h-6 px-2 text-xs text-muted-foreground hover:text-primary transition-colors"
         >
           <Reply className="h-3 w-3 mr-1" />
           Reply
         </Button>
       )}
 
-      {/* Reply form */}
       {replyingTo?.id === comment.id && (
         <form onSubmit={handleReplySubmit} className="mt-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex gap-2">
@@ -163,6 +165,7 @@ export function CommentSection({
               type="text"
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
+              onPaste={handlePaste}
               placeholder={`Reply to ${replyingTo.name}...`}
               maxLength={300}
               className={cn(
@@ -196,8 +199,8 @@ export function CommentSection({
           </div>
           
           {hasReplyValidationWarning && (
-            <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="h-3 w-3" />
+            <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 animate-in fade-in">
+              <AlertTriangle className="h-3 w-3 animate-pulse" />
               <span>
                 {replyContentCheck.hasBadWords && 'Inappropriate language detected. '}
                 {replyContentCheck.hasNames && 'Please avoid using real names.'}
@@ -207,7 +210,6 @@ export function CommentSection({
         </form>
       )}
 
-      {/* Render replies */}
       {comment.replies && comment.replies.length > 0 && (
         <div className="mt-3 space-y-2">
           {comment.replies.map((reply, replyIndex) => renderComment(reply, true, replyIndex))}
@@ -221,14 +223,14 @@ export function CommentSection({
       {!defaultExpanded && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex w-full items-center justify-between text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+          className="flex w-full items-center justify-between text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 group"
         >
           <span className="flex items-center gap-1.5">
-            <MessageCircle className="h-4 w-4" />
+            <MessageCircle className="h-4 w-4 transition-transform group-hover:scale-110" />
             {commentCount} {commentCount === 1 ? 'comment' : 'comments'}
           </span>
           <span className={cn(
-            'transition-transform duration-200',
+            'transition-transform duration-300',
             isExpanded && 'rotate-180'
           )}>
             <ChevronDown className="h-4 w-4" />
@@ -245,11 +247,11 @@ export function CommentSection({
           ) : (
             <>
               {organizedComments.length > 0 ? (
-                <div className="max-h-80 space-y-3 overflow-y-auto pr-1">
+                <div className="max-h-80 space-y-3 overflow-y-auto pr-1 custom-scrollbar">
                   {organizedComments.map((comment, index) => renderComment(comment, false, index))}
                 </div>
               ) : (
-                <p className="py-2 text-center text-sm text-muted-foreground">
+                <p className="py-4 text-center text-sm text-muted-foreground animate-pulse">
                   No comments yet. Be the first to show support!
                 </p>
               )}
@@ -260,12 +262,13 @@ export function CommentSection({
                     type="text"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
+                    onPaste={handlePaste}
                     placeholder="Write a supportive comment..."
                     maxLength={300}
                     className={cn(
                       'flex-1 rounded-lg border bg-input px-3 py-2 text-sm text-foreground transition-all duration-200',
                       'placeholder:text-muted-foreground',
-                      'focus:outline-none focus:ring-2 focus:ring-ring',
+                      'focus:outline-none focus:ring-2 focus:ring-ring focus:shadow-md',
                       hasValidationWarning && 'border-amber-500 focus:ring-amber-500/50'
                     )}
                     disabled={!userId || isSubmitting}
@@ -284,10 +287,9 @@ export function CommentSection({
                   </Button>
                 </div>
 
-                {/* Real-time validation warning */}
                 {hasValidationWarning && (
                   <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 animate-in fade-in duration-200">
-                    <AlertTriangle className="h-3 w-3" />
+                    <AlertTriangle className="h-3 w-3 animate-pulse" />
                     <span>
                       {contentCheck.hasBadWords && 'Inappropriate language detected. '}
                       {contentCheck.hasNames && 'Please avoid using real names.'}
