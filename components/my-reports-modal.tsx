@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { db } from '@/lib/firebase'
 import { collection, query, limit, onSnapshot } from 'firebase/firestore'
@@ -87,6 +87,9 @@ export function MyReportsModal({ isOpen, onClose, userId }: MyReportsModalProps)
             <Shield className="h-5 w-5 text-primary" />
             Account Status
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            View your account standing and report count
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (

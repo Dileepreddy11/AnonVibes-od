@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { db } from '@/lib/firebase'
@@ -121,6 +121,9 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
             <TrendingUp className="h-5 w-5 text-primary" />
             Top Contributors
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            View the top 3 contributors for today or this week
+          </DialogDescription>
         </DialogHeader>
 
         {/* Period Toggle */}

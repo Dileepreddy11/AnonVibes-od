@@ -1,85 +1,38 @@
-// Comprehensive bad word filter - detects words ANYWHERE in text
-// Uses word boundary detection to catch words in sentences
+// Comprehensive bad word filter with advanced detection
+// Catches variations like: f u c k, f*ck, fuuuck, f.u.c.k, etc.
 
-// Extensive list of bad words and their common variations
-const badWords = [
-  // Profanity
-  'fuck', 'fucker', 'fucking', 'fucked', 'fck', 'fuk', 'f*ck', 'f**k', 'fack',
-  'shit', 'shitting', 'shitty', 'sh1t', 'sh!t', 's**t',
-  'bitch', 'bitches', 'b1tch', 'b!tch',
-  'ass', 'asses', 'asshole', 'assholes', 'a$$', 'a**',
-  'dick', 'dicks', 'd1ck', 'd!ck',
-  'cock', 'cocks', 'c0ck',
-  'pussy', 'pussies', 'p*ssy', 'pu$$y',
-  'cunt', 'cunts', 'c*nt',
-  'whore', 'whores', 'wh0re',
-  'slut', 'sluts', 'sl*t',
-  'bastard', 'bastards',
-  'damn', 'dammit', 'damned',
-  'crap', 'crappy',
-  'piss', 'pissed', 'pissing',
-  'bollocks', 'bullshit', 'bs',
+// Core bad words (we'll detect variations automatically)
+const coreBadWords = [
+  // English profanity
+  'fuck', 'shit', 'bitch', 'ass', 'asshole', 'dick', 'cock', 'pussy', 'cunt',
+  'whore', 'slut', 'bastard', 'damn', 'crap', 'piss', 'bollocks', 'bullshit',
+  'fck', 'fuk', 'sht', 'btch', 'dck', 'pss',
   
   // Sexual content
-  'porn', 'porno', 'pornography', 'p0rn', 'pr0n',
-  'sex', 'sexy', 's3x', 'sexx', 'sexxy',
-  'hardcore', 'hardc0re',
-  'xxx', 'xxxx',
-  'nude', 'nudes', 'nudity',
-  'naked', 'nak3d',
-  'boob', 'boobs', 'boobies', 'b00bs',
-  'tit', 'tits', 'titty', 'titties', 't1ts',
-  'penis', 'pen1s',
-  'vagina', 'vag1na', 'vag',
-  'masturbate', 'masturbation', 'masterbate',
-  'orgasm', 'orgasms', '0rgasm',
-  'horny', 'h0rny',
-  'erotic', 'er0tic',
-  'deepfuck', 'deepf*ck',
-  'blowjob', 'bl0wjob', 'bj',
-  'handjob',
-  'dildo', 'vibrator',
-  'cum', 'cumming', 'cumshot',
-  'sperm', 'semen',
-  'anal', 'an4l',
-  'rape', 'raped', 'raping', 'rapist',
-  'incest',
-  'pedophile', 'pedo', 'paedophile',
-  'molest', 'molestation',
-  'bestiality',
-  'hentai', 'h3ntai',
-  'fetish',
+  'porn', 'porno', 'pornography', 'sex', 'sexy', 'hardcore', 'xxx', 'nude', 
+  'naked', 'boob', 'boobs', 'tit', 'tits', 'penis', 'vagina', 'masturbate',
+  'orgasm', 'horny', 'erotic', 'deepfuck', 'blowjob', 'handjob', 'dildo',
+  'cum', 'cumming', 'sperm', 'semen', 'anal', 'rape', 'incest', 'pedophile',
+  'pedo', 'molest', 'hentai', 'fetish',
   
-  // Slurs and hate speech
-  'nigger', 'nigga', 'n1gger', 'n1gga', 'nigg3r',
-  'faggot', 'fag', 'fags', 'f4ggot', 'f4g',
-  'retard', 'retarded', 'r3tard',
-  'tranny', 'shemale',
+  // Slurs
+  'nigger', 'nigga', 'faggot', 'fag', 'retard', 'retarded', 'tranny',
   'kike', 'spic', 'chink', 'gook', 'wetback',
   
   // Violence
-  'kill', 'killing', 'killer', 'k1ll',
-  'murder', 'murdered', 'murdering', 'murderer',
-  'terrorist', 'terrorism',
-  'bomb', 'bombing',
+  'kill', 'murder', 'terrorist', 'terrorism',
   
-  // Drugs (explicit)
-  'cocaine', 'c0caine', 'coke',
-  'heroin', 'her0in',
-  'meth', 'methamphetamine',
-  'crack',
-  'weed', 'marijuana', 'cannabis', 'ganja',
-  'ecstasy', 'mdma',
-  'lsd', 'acid',
+  // Drugs
+  'cocaine', 'heroin', 'meth', 'crack', 'ecstasy', 'mdma', 'lsd',
   
   // Telugu/Hindi bad words
-  'puka', 'pooku', 'modda', 'modha', 'lanjakoduku', 'lanja', 'dengey', 
+  'puka', 'pooku', 'modda', 'modha', 'lanjakoduku', 'lanja', 'dengey',
   'gudda', 'sulli', 'sulla', 'lavda', 'lavde', 'bhenchod', 'bhosdike',
   'chutiya', 'chut', 'madarchod', 'gaand', 'gand', 'randi', 'haramkhor',
-  'sala', 'saala', 'kutta', 'kutte', 'kamina', 'kamine', 'harami',
+  'kamina', 'kamine', 'harami',
 ]
 
-// Extensive list of common names from various cultures
+// Extensive list of common names
 const commonNames = [
   // Indian names
   'aarav', 'aditya', 'akash', 'amit', 'amitabh', 'anand', 'anil', 'aniket', 'anirudh', 'anjali',
@@ -138,36 +91,93 @@ const commonNames = [
   'hana', 'mei', 'rin', 'aoi', 'hina', 'mio', 'riko', 'sora', 'yuna',
 ]
 
-// Function to check if a word exists anywhere in text (case insensitive, with word boundaries)
-function containsWord(text: string, word: string): boolean {
-  // Create regex that matches the word with optional non-alphabetic characters between letters
-  // This catches variations like f*ck, f.u.c.k, etc.
-  const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const pattern = new RegExp(`\\b${escapedWord}\\b`, 'gi')
-  return pattern.test(text)
+// Character substitution map for detecting leetspeak and variations
+const charSubstitutions: { [key: string]: string[] } = {
+  'a': ['a', '@', '4', '^', 'á', 'à', 'ä', 'â'],
+  'b': ['b', '8', '6'],
+  'c': ['c', '(', 'k', '<'],
+  'd': ['d'],
+  'e': ['e', '3', 'é', 'è', 'ë', 'ê'],
+  'f': ['f', 'ph'],
+  'g': ['g', '9', '6'],
+  'h': ['h', '#'],
+  'i': ['i', '1', '!', '|', 'í', 'ì', 'ï', 'î', 'l'],
+  'j': ['j'],
+  'k': ['k', 'c'],
+  'l': ['l', '1', '|', 'i'],
+  'm': ['m'],
+  'n': ['n', 'ñ'],
+  'o': ['o', '0', 'ó', 'ò', 'ö', 'ô', 'q'],
+  'p': ['p'],
+  'q': ['q'],
+  'r': ['r'],
+  's': ['s', '$', '5', 'z'],
+  't': ['t', '7', '+'],
+  'u': ['u', 'v', 'ú', 'ù', 'ü', 'û'],
+  'v': ['v', 'u'],
+  'w': ['w', 'vv'],
+  'x': ['x'],
+  'y': ['y', 'ý'],
+  'z': ['z', '2', 's'],
 }
 
-// Function to check if text contains any variation of a bad word
-function containsBadWordVariation(text: string, word: string): boolean {
-  const normalizedText = text.toLowerCase()
-  const normalizedWord = word.toLowerCase()
+// Normalize text by removing special chars, spaces, and converting substitutions
+function normalizeText(text: string): string {
+  let normalized = text.toLowerCase()
   
-  // Check exact word boundary match
-  const wordBoundaryRegex = new RegExp(`(^|[^a-z])${normalizedWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i')
-  if (wordBoundaryRegex.test(normalizedText)) {
+  // Remove spaces and special characters between letters
+  // This catches "f u c k", "f.u.c.k", "f-u-c-k", etc.
+  normalized = normalized.replace(/[\s\.\-\_\*\!\@\#\$\%\^\&\(\)\+\=\[\]\{\}\|\\\:\;\"\'\<\>\,\/\?\~\`]+/g, '')
+  
+  // Replace common substitutions
+  for (const [letter, subs] of Object.entries(charSubstitutions)) {
+    for (const sub of subs) {
+      if (sub !== letter && sub.length === 1) {
+        normalized = normalized.split(sub).join(letter)
+      }
+    }
+  }
+  
+  // Remove repeated characters (fuuuuck -> fuck, shiiit -> shit)
+  normalized = normalized.replace(/(.)\1{2,}/g, '$1$1')
+  
+  return normalized
+}
+
+// Check if normalized text contains a bad word
+function containsBadWordNormalized(normalizedText: string, word: string): boolean {
+  const normalizedWord = normalizeText(word)
+  
+  // Check if the word appears anywhere
+  if (normalizedText.includes(normalizedWord)) {
+    return true
+  }
+  
+  // Also check for the word with double letters (common in bad words)
+  const doubledWord = normalizedWord.replace(/(.)/g, '$1$1')
+  if (normalizedText.includes(doubledWord)) {
     return true
   }
   
   return false
 }
 
-// Detect bad words in text - checks ANYWHERE in the sentence
+// Detect bad words with advanced pattern matching
 function detectBadWords(text: string): string[] {
   const found: string[] = []
-  const normalizedText = text.toLowerCase()
+  const normalizedText = normalizeText(text)
+  const originalLower = text.toLowerCase()
   
-  for (const word of badWords) {
-    if (containsBadWordVariation(normalizedText, word)) {
+  for (const word of coreBadWords) {
+    // Check normalized text (catches f u c k, f*ck, fuuuck, etc.)
+    if (containsBadWordNormalized(normalizedText, word)) {
+      found.push(word)
+      continue
+    }
+    
+    // Also check original text with word boundaries for exact matches
+    const wordRegex = new RegExp(`(^|[^a-z])${word}([^a-z]|$)`, 'i')
+    if (wordRegex.test(originalLower)) {
       found.push(word)
     }
   }
@@ -175,16 +185,17 @@ function detectBadWords(text: string): string[] {
   return [...new Set(found)]
 }
 
-// Detect names in text - checks ANYWHERE in the sentence
+// Detect names in text
 function detectNames(text: string): string[] {
   const found: string[] = []
-  const normalizedText = text.toLowerCase()
+  const words = text.toLowerCase().split(/[^a-zA-Z]+/)
   
-  for (const name of commonNames) {
-    // Check if name exists as a word in the text
-    const nameRegex = new RegExp(`(^|[^a-z])${name}([^a-z]|$)`, 'i')
-    if (nameRegex.test(normalizedText)) {
-      found.push(name)
+  for (const word of words) {
+    if (word.length < 2) continue
+    
+    // Check if word matches a name
+    if (commonNames.includes(word)) {
+      found.push(word)
     }
   }
   
@@ -264,7 +275,7 @@ export function validateContent(content: string): ContentValidation {
   return result
 }
 
-// Real-time content check (for showing warnings while typing)
+// Real-time content check
 export function checkContentRealtime(content: string): {
   hasBadWords: boolean
   hasNames: boolean
@@ -282,21 +293,17 @@ export function checkContentRealtime(content: string): {
   }
 }
 
-// Rate limiting for posts (stored in localStorage)
+// Rate limiting
 const RATE_LIMIT_KEY = 'post_timestamps'
-const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
-const RATE_LIMIT_MAX = 3 // 3 posts per minute
+const RATE_LIMIT_WINDOW = 60 * 1000
+const RATE_LIMIT_MAX = 3
 
 export function checkRateLimit(): { allowed: boolean; waitTime?: number } {
-  if (typeof window === 'undefined') {
-    return { allowed: true }
-  }
+  if (typeof window === 'undefined') return { allowed: true }
   
   const now = Date.now()
   const storedTimestamps = localStorage.getItem(RATE_LIMIT_KEY)
   let timestamps: number[] = storedTimestamps ? JSON.parse(storedTimestamps) : []
-  
-  // Remove old timestamps
   timestamps = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW)
   
   if (timestamps.length >= RATE_LIMIT_MAX) {
@@ -314,10 +321,22 @@ export function recordPost(): void {
   const now = Date.now()
   const storedTimestamps = localStorage.getItem(RATE_LIMIT_KEY)
   let timestamps: number[] = storedTimestamps ? JSON.parse(storedTimestamps) : []
-  
-  // Remove old timestamps and add new one
   timestamps = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW)
   timestamps.push(now)
-  
   localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(timestamps))
 }
+
+// Report reasons
+export const REPORT_REASONS = [
+  { value: 'inappropriate', label: 'Inappropriate content' },
+  { value: 'harassment', label: 'Harassment or bullying' },
+  { value: 'spam', label: 'Spam or misleading' },
+  { value: 'hate', label: 'Hate speech' },
+  { value: 'violence', label: 'Violence or threats' },
+  { value: 'other', label: 'Other' },
+] as const
+
+export type ReportReason = typeof REPORT_REASONS[number]['value']
+
+// Report threshold - after this many reports, post is hidden
+export const REPORT_THRESHOLD = 5
