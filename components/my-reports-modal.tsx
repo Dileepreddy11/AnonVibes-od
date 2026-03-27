@@ -82,14 +82,14 @@ export function MyReportsModal({ isOpen, onClose, userId }: MyReportsModalProps)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-sm animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <DialogDescription className="sr-only">
+          View your account standing and report count
+        </DialogDescription>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
             Account Status
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            View your account standing and report count
-          </DialogDescription>
         </DialogHeader>
 
         {loading ? (

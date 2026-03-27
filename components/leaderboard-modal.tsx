@@ -116,14 +116,14 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <DialogDescription className="sr-only">
+          View the top 3 contributors for today or this week
+        </DialogDescription>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <TrendingUp className="h-5 w-5 text-primary" />
             Top Contributors
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            View the top 3 contributors for today or this week
-          </DialogDescription>
         </DialogHeader>
 
         {/* Period Toggle */}
