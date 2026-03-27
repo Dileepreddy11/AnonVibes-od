@@ -180,8 +180,19 @@ export function PostCard({
 
       {/* Report Modal with Reasons */}
       {showReportModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-200 p-4 overflow-hidden">
-          <div className="w-full max-w-sm max-h-[90vh] rounded-xl border bg-card shadow-2xl animate-in zoom-in-95 duration-300 relative flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => {
+              setShowReportModal(false)
+              setSelectedReason(null)
+              setReportError(null)
+            }}
+          />
+
+          {/* Modal */}
+          <div className="relative w-full max-w-sm max-h-[85vh] rounded-xl border bg-card shadow-xl animate-in zoom-in-95 fade-in duration-300 flex flex-col overflow-hidden">
             {/* Close Button */}
             <button
               onClick={() => {
@@ -195,8 +206,8 @@ export function PostCard({
               <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
             </button>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-8">
               {reportSuccess ? (
                 <div className="text-center py-4 animate-in fade-in zoom-in duration-300">
                   <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
@@ -243,31 +254,29 @@ export function PostCard({
               )}
             </div>
 
-            {/* Fixed Buttons at Bottom */}
+            {/* Buttons - Fixed at Bottom */}
             {!reportSuccess && (
-              <div className="border-t bg-card p-6 space-y-3 flex-shrink-0">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 transition-all duration-200 hover:scale-[1.02]"
-                    onClick={() => {
-                      setShowReportModal(false)
-                      setSelectedReason(null)
-                      setReportError(null)
-                    }}
-                    disabled={isReporting}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    className="flex-1 transition-all duration-200 hover:scale-[1.02]"
-                    onClick={handleReport}
-                    disabled={!selectedReason || isReporting}
-                  >
-                    {isReporting ? 'Reporting...' : 'Submit Report'}
-                  </Button>
-                </div>
+              <div className="border-t bg-card p-4 flex gap-2 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  className="flex-1 transition-all duration-200 hover:scale-[1.02]"
+                  onClick={() => {
+                    setShowReportModal(false)
+                    setSelectedReason(null)
+                    setReportError(null)
+                  }}
+                  disabled={isReporting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1 transition-all duration-200 hover:scale-[1.02]"
+                  onClick={handleReport}
+                  disabled={!selectedReason || isReporting}
+                >
+                  {isReporting ? 'Reporting...' : 'Submit Report'}
+                </Button>
               </div>
             )}
           </div>
