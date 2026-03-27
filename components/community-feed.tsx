@@ -10,6 +10,7 @@ import { MoodFilter } from './mood-filter'
 import { MoodStats } from './mood-stats'
 import { Spinner } from '@/components/ui/spinner'
 import type { Mood } from '@/lib/types'
+import { validateContent } from '@/lib/moderation'
 import { AlertCircle, Heart } from 'lucide-react'
 
 export function CommunityFeed() {
@@ -31,7 +32,16 @@ export function CommunityFeed() {
 
   const handleCreatePost = async (content: string, mood: Mood) => {
     if (!user) throw new Error('Not authenticated')
-    await createPost(content, mood, user.uid, username)
+    
+    // Validate and sanitize content (removes real names)
+    const validation = validateContent(content)
+    if (!validation.valid) {
+      throw new Error(validation.error || 'Content validation failed')
+    }
+    
+    // Use sanitized content with names replaced with generic terms
+    const sanitizedContent = validation.sanitized
+    await createPost(sanitizedContent, mood, user.uid, username)
   }
 
   const handleReport = async (postId: string, reason: Parameters<typeof reportPost>[2]) => {

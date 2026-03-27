@@ -43,9 +43,9 @@ export function PostCard({
   const [localHasReported, setLocalHasReported] = useState(hasUserReported)
 
   const totalReactions =
-    post.reactionCounts.support +
-    post.reactionCounts.relate +
-    post.reactionCounts.staystrong
+    (post.reactionCounts?.support || 0) +
+    (post.reactionCounts?.relate || 0) +
+    (post.reactionCounts?.staystrong || 0)
 
   const isOwnPost = userId === post.authorId
 

@@ -202,6 +202,34 @@ function detectNames(text: string): string[] {
   return [...new Set(found)]
 }
 
+// Replace names with generic terms
+export function replaceNamesWithGeneric(text: string): { sanitized: string; namesFound: string[] } {
+  const namesFound: string[] = []
+  const words = text.split(/(\s+)/)
+  const genericTerms = ['someone', 'a person', 'this person', 'an individual', 'people']
+  let termIndex = 0
+  
+  const sanitized = words
+    .map((word) => {
+      const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '')
+      
+      if (commonNames.includes(cleanWord) && cleanWord.length > 1) {
+        if (!namesFound.includes(cleanWord)) {
+          namesFound.push(cleanWord)
+        }
+        // Use rotating generic terms for variety
+        const genericTerm = genericTerms[termIndex % genericTerms.length]
+        termIndex++
+        return genericTerm
+      }
+      
+      return word
+    })
+    .join('')
+  
+  return { sanitized, namesFound }
+}
+
 export function containsBadWords(text: string): boolean {
   return detectBadWords(text).length > 0
 }
@@ -225,6 +253,7 @@ export interface ContentValidation {
   hasNames: boolean
   badWordsFound: string[]
   namesFound: string[]
+  sanitized: string
 }
 
 export function validateContent(content: string): ContentValidation {
@@ -234,6 +263,7 @@ export function validateContent(content: string): ContentValidation {
     hasNames: false,
     badWordsFound: [],
     namesFound: [],
+    sanitized: content,
   }
 
   if (!content.trim()) {
@@ -264,12 +294,14 @@ export function validateContent(content: string): ContentValidation {
     }
   }
   
+  // If names are found, sanitize them automatically
   if (result.hasNames) {
-    return { 
-      ...result, 
-      valid: false, 
-      error: 'Please avoid using real names to protect privacy' 
-    }
+    const { sanitized, namesFound: detectedNames } = replaceNamesWithGeneric(content)
+    result.sanitized = sanitized
+    result.namesFound = detectedNames
+    // Still valid, just with auto-replaced names
+    result.valid = true
+    return result
   }
   
   return result

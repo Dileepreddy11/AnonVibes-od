@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { useComments } from '@/hooks/use-comments'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { checkContentRealtime } from '@/lib/moderation'
+import { checkContentRealtime, validateContent } from '@/lib/moderation'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import { Send, MessageCircle, ChevronDown, AlertTriangle, Reply, CornerDownRight } from 'lucide-react'
@@ -59,7 +59,13 @@ export function CommentSection({
     setIsSubmitting(true)
 
     try {
-      await addComment(newComment.trim(), userId, username, null)
+      // Validate and sanitize comment
+      const validation = validateContent(newComment)
+      if (!validation.valid) {
+        throw new Error(validation.error || 'Comment validation failed')
+      }
+      
+      await addComment(validation.sanitized, userId, username, null)
       setNewComment('')
       onCommentAdded?.()
     } catch (err) {
@@ -78,7 +84,13 @@ export function CommentSection({
     setIsSubmitting(true)
 
     try {
-      await addComment(replyContent.trim(), userId, username, replyingTo.id)
+      // Validate and sanitize reply
+      const validation = validateContent(replyContent)
+      if (!validation.valid) {
+        throw new Error(validation.error || 'Reply validation failed')
+      }
+      
+      await addComment(validation.sanitized, userId, username, replyingTo.id)
       setReplyContent('')
       setReplyingTo(null)
       onCommentAdded?.()
