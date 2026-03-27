@@ -26,6 +26,7 @@ interface PostCardProps {
   onCommentAdded?: (postId: string) => void
   index?: number
   hasUserReported?: boolean
+  onOpenReport?: (postId: string) => void
 }
 
 export function PostCard({
@@ -36,8 +37,8 @@ export function PostCard({
   onCommentAdded,
   index = 0,
   hasUserReported = false,
+  onOpenReport,
 }: PostCardProps) {
-  const [showReportModal, setShowReportModal] = useState(false)
   const [selectedReason, setSelectedReason] = useState<ReportReason | null>(null)
   const [isReporting, setIsReporting] = useState(false)
   const [reportError, setReportError] = useState<string | null>(null)
@@ -118,7 +119,7 @@ export function PostCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="animate-in fade-in zoom-in-95 duration-200">
               <DropdownMenuItem
-                onClick={() => setShowReportModal(true)}
+                onClick={() => onOpenReport?.(post.id)}
                 disabled={localHasReported}
                 className={cn(
                   "text-destructive focus:text-destructive",
@@ -177,111 +178,6 @@ export function PostCard({
         initialCommentCount={post.commentCount}
         onCommentAdded={() => onCommentAdded?.(post.id)}
       />
-
-      {/* Report Modal with Reasons */}
-      {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
-            onClick={() => {
-              setShowReportModal(false)
-              setSelectedReason(null)
-              setReportError(null)
-            }}
-          />
-
-          {/* Modal */}
-          <div className="relative w-full max-w-sm max-h-[85vh] rounded-xl border bg-card shadow-xl animate-in zoom-in-95 fade-in duration-300 flex flex-col overflow-hidden">
-            {/* Close Button */}
-            <button
-              onClick={() => {
-                setShowReportModal(false)
-                setSelectedReason(null)
-                setReportError(null)
-              }}
-              className="absolute top-4 right-4 z-10 p-1 rounded-lg hover:bg-muted transition-colors"
-              aria-label="Close report modal"
-            >
-              <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
-            </button>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-8">
-              {reportSuccess ? (
-                <div className="text-center py-4 animate-in fade-in zoom-in duration-300">
-                  <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                    <Check className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-card-foreground">Thank you!</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Your report helps keep our community safe.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <h3 className="mb-2 text-lg font-semibold text-card-foreground flex items-center gap-2">
-                    <Flag className="h-5 w-5 text-destructive" />
-                    Report this post
-                  </h3>
-                  <p className="mb-4 text-sm text-muted-foreground">
-                    Help us understand what&apos;s wrong with this post.
-                  </p>
-                  
-                  <div className="space-y-2 mb-4">
-                    {REPORT_REASONS.map((reason) => (
-                      <button
-                        key={reason.value}
-                        onClick={() => setSelectedReason(reason.value)}
-                        className={cn(
-                          "w-full text-left px-3 py-2 rounded-lg border text-sm transition-all duration-200",
-                          selectedReason === reason.value
-                            ? "border-primary bg-primary/10 text-foreground"
-                            : "border-border hover:border-primary/50 text-muted-foreground hover:text-foreground"
-                        )}
-                      >
-                        {reason.label}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  {reportError && (
-                    <p className="mb-4 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
-                      {reportError}
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Buttons - Fixed at Bottom */}
-            {!reportSuccess && (
-              <div className="border-t bg-card p-4 flex gap-2 flex-shrink-0">
-                <Button
-                  variant="outline"
-                  className="flex-1 transition-all duration-200 hover:scale-[1.02]"
-                  onClick={() => {
-                    setShowReportModal(false)
-                    setSelectedReason(null)
-                    setReportError(null)
-                  }}
-                  disabled={isReporting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  className="flex-1 transition-all duration-200 hover:scale-[1.02]"
-                  onClick={handleReport}
-                  disabled={!selectedReason || isReporting}
-                >
-                  {isReporting ? 'Reporting...' : 'Submit Report'}
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </article>
+    </div>
   )
 }
