@@ -24,43 +24,46 @@ interface ReactionDoc {
 }
 
 export function useReactions(postId: string, userId: string | undefined) {
-  const [userReactions, setUserReactions] = useState<Set<ReactionType>>(new Set())
-  const [reactionDocs, setReactionDocs] = useState<ReactionDoc[]>([])
+  // User can only have ONE reaction type per post
+  const [userReaction, setUserReaction] = useState<ReactionType | null>(null)
+  const [userReactionDocId, setUserReactionDocId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isToggling, setIsToggling] = useState(false)
 
-  // Fetch user's existing reactions for this post
+  // Fetch user's existing reaction for this post
   useEffect(() => {
     if (!userId) {
       setLoading(false)
       return
     }
 
-    const fetchReactions = async () => {
+    const fetchReaction = async () => {
       try {
         const reactionsRef = collection(db, 'reactions')
-        // Simple query without where to avoid index requirements
         const q = query(reactionsRef, limit(1000))
         const snapshot = await getDocs(q)
         
-        const reactions = new Set<ReactionType>()
-        const docs: ReactionDoc[] = []
-        
-        // Client-side filtering
+        // Find user's reaction for this specific post
+        let foundReaction: ReactionDoc | null = null
         snapshot.docs.forEach((docSnap) => {
           const data = docSnap.data()
           if (data.postId === postId && data.userId === userId) {
-            reactions.add(data.type as ReactionType)
-            docs.push({
+            foundReaction = {
               id: docSnap.id,
               postId: data.postId,
               userId: data.userId,
               type: data.type as ReactionType,
-            })
+            }
           }
         })
         
-        setUserReactions(reactions)
-        setReactionDocs(docs)
+        if (foundReaction) {
+          setUserReaction(foundReaction.type)
+          setUserReactionDocId(foundReaction.id)
+        } else {
+          setUserReaction(null)
+          setUserReactionDocId(null)
+        }
       } catch (err) {
         console.error('Error fetching reactions:', err)
       } finally {
@@ -68,72 +71,78 @@ export function useReactions(postId: string, userId: string | undefined) {
       }
     }
 
-    fetchReactions()
+    fetchReaction()
   }, [postId, userId])
 
-  // Toggle reaction
+  // Toggle reaction - user can only have ONE reaction type at a time
   const toggleReaction = useCallback(
     async (type: ReactionType) => {
-      if (!userId) return
+      if (!userId || isToggling) return
 
-      const hasReaction = userReactions.has(type)
-      
+      setIsToggling(true)
+
       try {
-        if (hasReaction) {
-          // Find the reaction doc to delete
-          const reactionDoc = reactionDocs.find(
-            r => r.postId === postId && r.userId === userId && r.type === type
-          )
-          
-          if (reactionDoc) {
-            await deleteDoc(doc(db, 'reactions', reactionDoc.id))
-            
-            // Update local state
-            setReactionDocs(prev => prev.filter(r => r.id !== reactionDoc.id))
+        const postRef = doc(db, 'posts', postId)
+
+        if (userReaction === type) {
+          // Same reaction clicked - remove it (toggle off)
+          if (userReactionDocId) {
+            await deleteDoc(doc(db, 'reactions', userReactionDocId))
+            await updateDoc(postRef, {
+              [`reactionCounts.${type}`]: increment(-1),
+            })
           }
-
-          // Update post reaction count
-          const postRef = doc(db, 'posts', postId)
-          await updateDoc(postRef, {
-            [`reactionCounts.${type}`]: increment(-1),
-          })
-
-          setUserReactions((prev) => {
-            const next = new Set(prev)
-            next.delete(type)
-            return next
-          })
-        } else {
-          // Add reaction
+          setUserReaction(null)
+          setUserReactionDocId(null)
+        } else if (userReaction) {
+          // Different reaction - switch to new type
+          if (userReactionDocId) {
+            // Delete old reaction
+            await deleteDoc(doc(db, 'reactions', userReactionDocId))
+            await updateDoc(postRef, {
+              [`reactionCounts.${userReaction}`]: increment(-1),
+            })
+          }
+          // Add new reaction
           const docRef = await addDoc(collection(db, 'reactions'), {
             postId,
             userId,
             type,
             createdAt: serverTimestamp(),
           })
-
-          // Update local state
-          setReactionDocs(prev => [...prev, { id: docRef.id, postId, userId, type }])
-
-          // Update post reaction count
-          const postRef = doc(db, 'posts', postId)
           await updateDoc(postRef, {
             [`reactionCounts.${type}`]: increment(1),
           })
-
-          setUserReactions((prev) => new Set(prev).add(type))
+          setUserReaction(type)
+          setUserReactionDocId(docRef.id)
+        } else {
+          // No existing reaction - add new one
+          const docRef = await addDoc(collection(db, 'reactions'), {
+            postId,
+            userId,
+            type,
+            createdAt: serverTimestamp(),
+          })
+          await updateDoc(postRef, {
+            [`reactionCounts.${type}`]: increment(1),
+          })
+          setUserReaction(type)
+          setUserReactionDocId(docRef.id)
         }
       } catch (err) {
         console.error('Error toggling reaction:', err)
+      } finally {
+        setIsToggling(false)
       }
     },
-    [postId, userId, userReactions, reactionDocs]
+    [postId, userId, userReaction, userReactionDocId, isToggling]
   )
 
   return {
-    userReactions,
+    userReaction,
     loading,
+    isToggling,
     toggleReaction,
-    hasReacted: (type: ReactionType) => userReactions.has(type),
+    hasReacted: (type: ReactionType) => userReaction === type,
   }
 }

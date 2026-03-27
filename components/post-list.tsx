@@ -109,7 +109,7 @@ export function PostList({
 
   return (
     <div className="space-y-4">
-      {posts.map((post) => (
+      {posts.map((post, index) => (
         <PostCard
           key={post.id}
           post={post}
@@ -117,6 +117,7 @@ export function PostList({
           username={username}
           onReport={onReport}
           onCommentAdded={onCommentAdded}
+          index={index}
         />
       ))}
 
