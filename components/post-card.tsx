@@ -39,10 +39,6 @@ export function PostCard({
   hasUserReported = false,
   onOpenReport,
 }: PostCardProps) {
-  const [selectedReason, setSelectedReason] = useState<ReportReason | null>(null)
-  const [isReporting, setIsReporting] = useState(false)
-  const [reportError, setReportError] = useState<string | null>(null)
-  const [reportSuccess, setReportSuccess] = useState(false)
   const [localReportCount, setLocalReportCount] = useState(post.reportCount || 0)
   const [localHasReported, setLocalHasReported] = useState(hasUserReported)
 
@@ -53,28 +49,10 @@ export function PostCard({
 
   const isOwnPost = userId === post.authorId
 
-  const handleReport = async () => {
-    if (!selectedReason || !userId) return
-    
-    setIsReporting(true)
-    setReportError(null)
-    
-    try {
-      const result = await onReport?.(post.id, selectedReason)
-      if (result) {
-        setLocalReportCount(result.newReportCount)
-        setLocalHasReported(true)
-        setReportSuccess(true)
-        setTimeout(() => {
-          setShowReportModal(false)
-          setReportSuccess(false)
-          setSelectedReason(null)
-        }, 1500)
-      }
-    } catch (error) {
-      setReportError(error instanceof Error ? error.message : 'Failed to report')
-    } finally {
-      setIsReporting(false)
+  const updateReportCount = async (newCount: number, isHidden: boolean) => {
+    setLocalReportCount(newCount)
+    if (newCount > 0) {
+      setLocalHasReported(true)
     }
   }
 
@@ -178,6 +156,6 @@ export function PostCard({
         initialCommentCount={post.commentCount}
         onCommentAdded={() => onCommentAdded?.(post.id)}
       />
-    </div>
+    </article>
   )
 }
