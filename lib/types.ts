@@ -27,6 +27,8 @@ export interface Comment {
   authorId: string
   authorName: string
   createdAt: Timestamp
+  parentId?: string | null // For nested comments
+  replies?: Comment[] // Client-side populated
 }
 
 export interface Reaction {

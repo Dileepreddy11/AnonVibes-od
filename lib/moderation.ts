@@ -1,66 +1,150 @@
-// Comprehensive bad word filter
-const badWords = [
-  // Profanity
-  'fuck', 'fucking', 'fucked', 'fucker', 'fck', 'f*ck', 'fuk',
-  'shit', 'sh*t', 'bullshit', 'shitting',
-  'ass', 'asshole', 'a$$',
-  'bitch', 'b*tch', 'bitches',
-  'damn', 'dammit',
-  'crap', 'dick', 'd*ck', 'cock', 'c*ck',
-  'pussy', 'p*ssy', 'cunt', 'c*nt',
-  'bastard', 'whore', 'slut',
-  // Sexual content
-  'sex', 'sexy', 's*x', 'porn', 'porno', 'p*rn',
-  'hardcore', 'deepfuck', 'xxx', 'nude', 'naked',
-  'boobs', 'tits', 'penis', 'vagina',
-  'masturbate', 'orgasm', 'horny',
-  // Hate/violence
-  'hate', 'kill', 'murder', 'rape', 'racist',
-  'nigger', 'nigga', 'faggot', 'fag',
-  // Spam/scam
-  'spam', 'scam', 'fake', 'fraud',
+// Comprehensive bad word filter using patterns to catch variations
+// This catches leetspeak, character substitutions, and common evasions
+
+const badWordPatterns = [
+  // Core profanity with common variations
+  /f+[u\*@0]+c+k+/gi,
+  /f+[^\w]*u+[^\w]*c+[^\w]*k+/gi,
+  /sh[i1!]+t+/gi,
+  /b[i1!]+t+ch/gi,
+  /a+[s\$]+[s\$]+h*o*l*e*/gi,
+  /d[i1!]+c+k+/gi,
+  /c+[o0]+c+k+/gi,
+  /p+[u\*]+s+[s\$]+y+/gi,
+  /c+[u\*]+n+t+/gi,
+  /wh+[o0]+r+e+/gi,
+  /sl+[u\*]+t+/gi,
+  /b+a+st+a+r+d+/gi,
+  /d+a+m+n+/gi,
+  
+  // Sexual content patterns
+  /p+[o0]+r+n+/gi,
+  /s+[e3]+x+y*/gi,
+  /h+a+r+d+c+[o0]+r+e+/gi,
+  /x+x+x+/gi,
+  /n+[u\*]+d+e+/gi,
+  /n+a+k+[e3]+d+/gi,
+  /b+[o0]+[o0]+b+s*/gi,
+  /t+[i1]+t+s*/gi,
+  /p+[e3]+n+[i1]+s+/gi,
+  /v+a+g+[i1]+n+a+/gi,
+  /m+a+st+[u\*]+r+b+/gi,
+  /[o0]+r+g+a+s+m+/gi,
+  /h+[o0]+r+n+y+/gi,
+  /er+[o0]+t+[i1]+c+/gi,
+  /d+[e3]+[e3]+p+f+/gi,
+  
+  // Slurs and hate speech
+  /n+[i1]+g+[g]+[ae3]+r*/gi,
+  /f+a+g+[g]*[o0]*t*/gi,
+  /r+[e3]+t+a+r+d+/gi,
+  
+  // Violence related
+  /r+a+p+[e3]+/gi,
+  /k+[i1]+l+l+/gi,
+  /m+[u\*]+r+d+[e3]+r+/gi,
+  
   // Drugs
-  'cocaine', 'heroin', 'meth', 'weed', 'marijuana',
+  /c+[o0]+c+a+[i1]+n+[e3]*/gi,
+  /h+[e3]+r+[o0]+[i1]+n+/gi,
+  /m+[e3]+t+h+/gi,
 ]
 
-// Common Indian and international names to filter (optional - can be disabled)
-const commonNames = [
-  // Indian names
-  'suresh', 'ramesh', 'mahesh', 'rajesh', 'virat', 'rohit', 'sachin',
-  'priya', 'anjali', 'pooja', 'neha', 'deepika', 'ananya',
-  'amit', 'anil', 'vijay', 'ravi', 'kumar', 'sharma', 'singh',
-  'rahul', 'akash', 'arjun', 'karthik', 'arun', 'sanjay',
-  // Common western names
-  'john', 'james', 'michael', 'david', 'robert', 'william',
-  'mary', 'jennifer', 'linda', 'sarah', 'jessica', 'emily',
+// Function to detect bad words using patterns
+function detectBadWordsWithPatterns(text: string): string[] {
+  const found: string[] = []
+  
+  for (const pattern of badWordPatterns) {
+    const matches = text.match(pattern)
+    if (matches) {
+      found.push(...matches)
+    }
+  }
+  
+  return [...new Set(found.map(w => w.toLowerCase()))]
+}
+
+// Comprehensive name detection - detects capitalized words that look like names
+// This catches most human names without needing a huge list
+function detectPotentialNames(text: string): string[] {
+  // Pattern to match capitalized words that are likely names
+  // Excludes common English words that are capitalized
+  const commonWords = new Set([
+    'i', 'a', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 'be', 'been',
+    'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+    'should', 'may', 'might', 'must', 'can', 'need', 'dare', 'ought', 'used',
+    'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'into',
+    'through', 'during', 'before', 'after', 'above', 'below', 'between', 'under',
+    'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why',
+    'how', 'all', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no',
+    'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just',
+    'happy', 'sad', 'angry', 'stressed', 'confused', 'feeling', 'feel', 'today',
+    'yesterday', 'tomorrow', 'morning', 'evening', 'night', 'day', 'week', 'month',
+    'year', 'time', 'life', 'work', 'school', 'home', 'family', 'friend', 'friends',
+    'love', 'hate', 'help', 'support', 'care', 'thanks', 'thank', 'please', 'sorry',
+    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+    'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august',
+    'september', 'october', 'november', 'december', 'god', 'anyone', 'someone',
+    'everyone', 'nobody', 'anybody', 'somebody', 'everybody', 'nothing', 'something',
+    'everything', 'anything', 'people', 'person', 'man', 'woman', 'child', 'children',
+  ])
+  
+  // Match words that start with capital letter (potential names)
+  const capitalizedWords = text.match(/\b[A-Z][a-z]{2,}\b/g) || []
+  
+  // Filter out common words
+  const potentialNames = capitalizedWords.filter(word => 
+    !commonWords.has(word.toLowerCase()) && 
+    word.length >= 3 && 
+    word.length <= 20
+  )
+  
+  return [...new Set(potentialNames)]
+}
+
+// Known name patterns (common first names from various cultures)
+const knownNamePatterns = [
+  // These are regex patterns to catch common name patterns
+  /\b(raj|rahul|rohit|virat|sachin|amit|anil|vijay|ravi|kumar|arjun|karthik|arun|sanjay)\b/gi,
+  /\b(priya|anjali|pooja|neha|deepika|ananya|sneha|kavya|divya|meera|lakshmi|padma)\b/gi,
+  /\b(suresh|ramesh|mahesh|rajesh|ganesh|mukesh|dinesh|naresh|hitesh|ritesh)\b/gi,
+  /\b(john|james|michael|david|robert|william|richard|joseph|thomas|charles)\b/gi,
+  /\b(mary|jennifer|linda|sarah|jessica|emily|ashley|amanda|stephanie|nicole)\b/gi,
+  /\b(mohammed|muhammad|ahmed|ali|omar|hassan|hussain|ibrahim|yusuf|khalid)\b/gi,
+  /\b(wei|chen|zhang|wang|li|liu|yang|huang|zhao|wu|zhou|xu|sun|ma)\b/gi,
 ]
 
-// Create regex for bad words (case insensitive, word boundaries)
-const badWordRegex = new RegExp(`\\b(${badWords.join('|')})\\b`, 'gi')
-
-// Create regex for names (case insensitive, word boundaries)
-const nameRegex = new RegExp(`\\b(${commonNames.join('|')})\\b`, 'gi')
+function detectKnownNames(text: string): string[] {
+  const found: string[] = []
+  
+  for (const pattern of knownNamePatterns) {
+    const matches = text.match(pattern)
+    if (matches) {
+      found.push(...matches)
+    }
+  }
+  
+  return [...new Set(found.map(w => w.toLowerCase()))]
+}
 
 export function containsBadWords(text: string): boolean {
-  return badWordRegex.test(text)
+  return detectBadWordsWithPatterns(text).length > 0
 }
 
 export function containsNames(text: string): boolean {
-  return nameRegex.test(text)
+  const knownNames = detectKnownNames(text)
+  const potentialNames = detectPotentialNames(text)
+  return knownNames.length > 0 || potentialNames.length > 0
 }
 
 export function getBadWordsInText(text: string): string[] {
-  const matches = text.match(badWordRegex)
-  return matches ? [...new Set(matches.map(m => m.toLowerCase()))] : []
+  return detectBadWordsWithPatterns(text)
 }
 
 export function getNamesInText(text: string): string[] {
-  const matches = text.match(nameRegex)
-  return matches ? [...new Set(matches.map(m => m.toLowerCase()))] : []
-}
-
-export function sanitizeContent(text: string): string {
-  return text.replace(badWordRegex, '***')
+  const knownNames = detectKnownNames(text)
+  const potentialNames = detectPotentialNames(text)
+  return [...new Set([...knownNames, ...potentialNames])]
 }
 
 export interface ContentValidation {

@@ -56,9 +56,9 @@ export function useComments(postId: string) {
     return () => unsubscribe()
   }, [postId])
 
-  // Add a comment
+  // Add a comment (with optional parentId for nested comments)
   const addComment = useCallback(
-    async (content: string, authorId: string, authorName: string) => {
+    async (content: string, authorId: string, authorName: string, parentId: string | null = null) => {
       const validation = validateContent(content)
       if (!validation.valid) {
         throw new Error(validation.error)
@@ -70,6 +70,7 @@ export function useComments(postId: string) {
         authorId,
         authorName,
         createdAt: serverTimestamp(),
+        parentId: parentId || null,
       }
 
       const docRef = await addDoc(collection(db, 'comments'), commentData)
