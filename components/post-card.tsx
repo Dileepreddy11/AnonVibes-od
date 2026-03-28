@@ -46,7 +46,8 @@ export function PostCard({
     post.reactionCounts.relate +
     post.reactionCounts.staystrong
 
-  const isOwnPost = userId === post.authorId
+  // Check if this is the user's own post (ensure both exist before comparing)
+  const isOwnPost = Boolean(userId && post.authorId && userId === post.authorId)
 
   return (
     <article 
