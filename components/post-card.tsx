@@ -123,7 +123,8 @@ export function PostCard({
         </div>
       )}
 
-      {totalReactions > 0 && (
+      {/* Only show "people showing support" for other users' posts, not your own */}
+      {totalReactions > 0 && !isOwnPost && (
         <div className="mb-3 flex items-center gap-1.5 text-xs text-muted-foreground animate-in fade-in duration-500">
           <Users className="h-3 w-3" />
           <span>

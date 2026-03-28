@@ -125,34 +125,6 @@ export function CommunityFeed() {
                 <PostForm onSubmit={handleCreatePost} disabled={!user} />
               </div>
 
-              {/* Mobile Community Mood & Guidelines - Always visible on mobile */}
-              <div className="lg:hidden flex-shrink-0 space-y-3">
-                <MoodStats />
-                <div className="rounded-xl border bg-card p-3">
-                  <h3 className="mb-2 font-semibold text-card-foreground text-sm">
-                    Community Guidelines
-                  </h3>
-                  <ul className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">1.</span>
-                      Be kind & supportive
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">2.</span>
-                      Respect anonymity
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">3.</span>
-                      Share genuinely
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">4.</span>
-                      Report harmful content
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
               {/* Mood Filter - Fixed */}
               <div className="overflow-x-auto pb-1 flex-shrink-0">
                 <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
@@ -173,6 +145,34 @@ export function CommunityFeed() {
                   onCommentAdded={incrementCommentCount}
                   hasUserReported={hasUserReported}
                 />
+                
+                {/* Mobile Community Mood & Guidelines - After posts */}
+                <div className="lg:hidden space-y-3 mt-4 pb-4">
+                  <MoodStats />
+                  <div className="rounded-xl border bg-card p-3">
+                    <h3 className="mb-2 font-semibold text-card-foreground text-sm">
+                      Community Guidelines
+                    </h3>
+                    <ul className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
+                      <li className="flex items-start gap-1.5">
+                        <span className="text-primary font-medium">1.</span>
+                        Be kind & supportive
+                      </li>
+                      <li className="flex items-start gap-1.5">
+                        <span className="text-primary font-medium">2.</span>
+                        Respect anonymity
+                      </li>
+                      <li className="flex items-start gap-1.5">
+                        <span className="text-primary font-medium">3.</span>
+                        Share genuinely
+                      </li>
+                      <li className="flex items-start gap-1.5">
+                        <span className="text-primary font-medium">4.</span>
+                        Report harmful content
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
 
