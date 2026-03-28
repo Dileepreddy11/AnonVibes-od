@@ -55,12 +55,19 @@ export function PostList({
     [hasMore, loadingMore, onLoadMore]
   )
 
+  // Track local report counts for immediate UI updates
+  const [localReportCounts, setLocalReportCounts] = useState<Record<string, number>>({})
+  const [localReportedPosts, setLocalReportedPosts] = useState<Set<string>>(new Set())
+
   const handleReportSubmit = async () => {
     if (!reportingPostId || !selectedReason) return
     setIsReporting(true)
     setReportError(null)
     try {
-      await onReport(reportingPostId, selectedReason)
+      const result = await onReport(reportingPostId, selectedReason)
+      // Update local state immediately for instant UI feedback
+      setLocalReportCounts(prev => ({ ...prev, [reportingPostId]: result.newReportCount }))
+      setLocalReportedPosts(prev => new Set([...prev, reportingPostId]))
       setReportSuccess(true)
       setTimeout(() => {
         setReportingPostId(null)
@@ -72,6 +79,16 @@ export function PostList({
     } finally {
       setIsReporting(false)
     }
+  }
+  
+  // Get the effective report count (local override or from post)
+  const getReportCount = (post: Post) => {
+    return localReportCounts[post.id] ?? post.reportCount ?? 0
+  }
+  
+  // Check if user has reported (including local state)
+  const checkHasReported = (post: Post) => {
+    return localReportedPosts.has(post.id) || (userId ? hasUserReported(post, userId) : false)
   }
 
   useEffect(() => {
@@ -140,13 +157,13 @@ export function PostList({
       {posts.map((post, index) => (
         <PostCard
           key={post.id}
-          post={post}
+          post={{ ...post, reportCount: getReportCount(post) }}
           userId={userId}
           username={username}
           onReport={onReport}
           onCommentAdded={onCommentAdded}
           index={index}
-          hasUserReported={userId ? hasUserReported(post, userId) : false}
+          hasUserReported={checkHasReported(post)}
           onOpenReport={setReportingPostId}
         />
       ))}
