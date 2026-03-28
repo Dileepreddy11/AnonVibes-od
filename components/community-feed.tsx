@@ -130,7 +130,7 @@ export function CommunityFeed() {
                 <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
               </div>
 
-              {/* Posts - Scrollable Container */}
+              {/* Posts - Scrollable Container (ONLY posts scroll) */}
               <div className="flex-1 overflow-y-auto min-h-0 rounded-xl scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                 <PostList
                   posts={posts}
@@ -145,33 +145,33 @@ export function CommunityFeed() {
                   onCommentAdded={incrementCommentCount}
                   hasUserReported={hasUserReported}
                 />
-                
-                {/* Mobile Community Mood & Guidelines - After posts */}
-                <div className="lg:hidden space-y-3 mt-4 pb-4">
-                  <MoodStats />
-                  <div className="rounded-xl border bg-card p-3">
-                    <h3 className="mb-2 font-semibold text-card-foreground text-sm">
-                      Community Guidelines
-                    </h3>
-                    <ul className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
-                      <li className="flex items-start gap-1.5">
-                        <span className="text-primary font-medium">1.</span>
-                        Be kind & supportive
-                      </li>
-                      <li className="flex items-start gap-1.5">
-                        <span className="text-primary font-medium">2.</span>
-                        Respect anonymity
-                      </li>
-                      <li className="flex items-start gap-1.5">
-                        <span className="text-primary font-medium">3.</span>
-                        Share genuinely
-                      </li>
-                      <li className="flex items-start gap-1.5">
-                        <span className="text-primary font-medium">4.</span>
-                        Report harmful content
-                      </li>
-                    </ul>
-                  </div>
+              </div>
+              
+              {/* Mobile Community Mood & Guidelines - Fixed at bottom (does NOT scroll) */}
+              <div className="lg:hidden flex-shrink-0 space-y-3 pt-2 border-t">
+                <MoodStats />
+                <div className="rounded-xl border bg-card p-3">
+                  <h3 className="mb-2 font-semibold text-card-foreground text-sm">
+                    Community Guidelines
+                  </h3>
+                  <ul className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-primary font-medium">1.</span>
+                      Be kind & supportive
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-primary font-medium">2.</span>
+                      Respect anonymity
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-primary font-medium">3.</span>
+                      Share genuinely
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-primary font-medium">4.</span>
+                      Report harmful content
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
