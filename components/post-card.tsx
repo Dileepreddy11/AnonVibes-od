@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { MoodBadge } from './mood-badge'
 import { ReactionButtons } from './reaction-buttons'
 import { CommentSection } from './comment-section'
@@ -39,8 +38,8 @@ export function PostCard({
   hasUserReported = false,
   onOpenReport,
 }: PostCardProps) {
-  const [localReportCount, setLocalReportCount] = useState(post.reportCount || 0)
-  const [localHasReported, setLocalHasReported] = useState(hasUserReported)
+  // Use the report count passed from parent (which includes local updates)
+  const reportCount = post.reportCount || 0
 
   const totalReactions =
     post.reactionCounts.support +
@@ -48,13 +47,6 @@ export function PostCard({
     post.reactionCounts.staystrong
 
   const isOwnPost = userId === post.authorId
-
-  const updateReportCount = async (newCount: number, isHidden: boolean) => {
-    setLocalReportCount(newCount)
-    if (newCount > 0) {
-      setLocalHasReported(true)
-    }
-  }
 
   return (
     <article 
@@ -98,14 +90,14 @@ export function PostCard({
             <DropdownMenuContent align="end" className="animate-in fade-in zoom-in-95 duration-200">
               <DropdownMenuItem
                 onClick={() => onOpenReport?.(post.id)}
-                disabled={localHasReported}
+                disabled={hasUserReported}
                 className={cn(
                   "text-destructive focus:text-destructive",
-                  localHasReported && "opacity-50 cursor-not-allowed"
+                  hasUserReported && "opacity-50 cursor-not-allowed"
                 )}
               >
                 <Flag className="mr-2 h-4 w-4" />
-                {localHasReported ? 'Already reported' : 'Report post'}
+                {hasUserReported ? 'Already reported' : 'Report post'}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -117,12 +109,12 @@ export function PostCard({
       </div>
 
       {/* Report count indicator - shows if post has reports */}
-      {localReportCount > 0 && (
+      {reportCount > 0 && (
         <div className="mb-3 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-md animate-in fade-in duration-300">
           <AlertTriangle className="h-3 w-3" />
           <span>
-            {localReportCount} {localReportCount === 1 ? 'person' : 'people'} flagged this post
-            {localReportCount >= REPORT_THRESHOLD - 1 && localReportCount < REPORT_THRESHOLD && (
+            {reportCount} {reportCount === 1 ? 'person' : 'people'} flagged this post
+            {reportCount >= REPORT_THRESHOLD - 1 && reportCount < REPORT_THRESHOLD && (
               <span className="ml-1 text-amber-700 dark:text-amber-300">
                 - May be removed soon
               </span>
