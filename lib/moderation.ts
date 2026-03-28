@@ -1,190 +1,6 @@
 // Comprehensive bad word filter with advanced detection
 // Catches variations like: f u c k, f*ck, fuuuck, f.u.c.k, etc.
 
-// Common English words dictionary for language detection
-const commonEnglishWords = new Set([
-  // Common words
-  'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 'with',
-  'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her',
-  'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up',
-  'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time',
-  'no', 'just', 'him', 'know', 'take', 'people', 'into', 'year', 'your', 'good', 'some', 'could',
-  'them', 'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think',
-  'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even',
-  'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us', 'is', 'am', 'are', 'was',
-  'were', 'been', 'being', 'has', 'had', 'having', 'does', 'did', 'doing', 'should', 'could',
-  'would', 'might', 'must', 'shall', 'need', 'dare', 'ought', 'used', 'here', 'there', 'where',
-  'why', 'when', 'how', 'what', 'which', 'who', 'whom', 'whose', 'yes', 'no', 'maybe', 'please',
-  'thank', 'thanks', 'sorry', 'excuse', 'hello', 'hi', 'hey', 'bye', 'goodbye', 'welcome',
-  // Feelings and emotions
-  'happy', 'sad', 'angry', 'fear', 'love', 'hate', 'joy', 'hope', 'worry', 'stress', 'peace',
-  'calm', 'anxious', 'excited', 'bored', 'tired', 'lonely', 'proud', 'shame', 'guilt', 'envy',
-  'jealous', 'grateful', 'content', 'depressed', 'confused', 'curious', 'surprised', 'shocked',
-  'disappointed', 'frustrated', 'overwhelmed', 'relieved', 'nervous', 'scared', 'terrified',
-  'feeling', 'feel', 'felt', 'emotion', 'mood', 'heart', 'soul', 'mind', 'thought', 'dream',
-  // Common verbs
-  'help', 'need', 'try', 'let', 'keep', 'put', 'set', 'seem', 'ask', 'show', 'hear', 'play',
-  'run', 'move', 'live', 'believe', 'hold', 'bring', 'happen', 'write', 'provide', 'sit', 'stand',
-  'lose', 'pay', 'meet', 'include', 'continue', 'learn', 'change', 'lead', 'understand', 'watch',
-  'follow', 'stop', 'create', 'speak', 'read', 'allow', 'add', 'spend', 'grow', 'open', 'walk',
-  'win', 'offer', 'remember', 'consider', 'appear', 'buy', 'wait', 'serve', 'die', 'send', 'expect',
-  'build', 'stay', 'fall', 'cut', 'reach', 'kill', 'remain', 'suggest', 'raise', 'pass', 'sell',
-  'require', 'report', 'decide', 'pull', 'support', 'share', 'today', 'tonight', 'tomorrow',
-  // Common nouns
-  'man', 'woman', 'child', 'children', 'boy', 'girl', 'friend', 'family', 'mother', 'father',
-  'brother', 'sister', 'son', 'daughter', 'husband', 'wife', 'parent', 'home', 'house', 'room',
-  'school', 'student', 'teacher', 'book', 'word', 'story', 'night', 'morning', 'evening',
-  'life', 'world', 'country', 'city', 'place', 'thing', 'person', 'part', 'problem', 'fact',
-  'group', 'company', 'system', 'program', 'question', 'government', 'number', 'point', 'hand',
-  'water', 'money', 'food', 'car', 'job', 'office', 'door', 'phone', 'computer', 'game',
-  // Common adjectives
-  'great', 'little', 'own', 'old', 'right', 'big', 'high', 'different', 'small', 'large', 'next',
-  'early', 'young', 'important', 'few', 'public', 'bad', 'same', 'able', 'free', 'sure', 'true',
-  'false', 'real', 'full', 'special', 'hard', 'easy', 'clear', 'recent', 'certain', 'personal',
-  'open', 'possible', 'late', 'dark', 'light', 'strong', 'weak', 'best', 'better', 'worse', 'worst',
-  // Common adverbs
-  'very', 'really', 'always', 'never', 'often', 'sometimes', 'usually', 'still', 'already', 'again',
-  'too', 'enough', 'almost', 'actually', 'probably', 'maybe', 'perhaps', 'definitely', 'certainly',
-  // Pronouns and determiners
-  'myself', 'yourself', 'himself', 'herself', 'itself', 'ourselves', 'themselves', 'each', 'every',
-  'both', 'few', 'more', 'most', 'several', 'such', 'much', 'many', 'another', 'either', 'neither',
-  // Prepositions and conjunctions
-  'above', 'across', 'against', 'along', 'among', 'around', 'before', 'behind', 'below', 'beneath',
-  'beside', 'between', 'beyond', 'during', 'except', 'inside', 'near', 'off', 'since', 'through',
-  'toward', 'under', 'until', 'upon', 'within', 'without', 'although', 'though', 'unless', 'while',
-  // Numbers
-  'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
-  'hundred', 'thousand', 'million', 'billion', 'first', 'second', 'third', 'fourth', 'fifth',
-  // Days and months
-  'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
-  'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september',
-  'october', 'november', 'december', 'week', 'month', 'year', 'today', 'yesterday',
-  // Internet/social media terms
-  'post', 'message', 'chat', 'online', 'offline', 'website', 'app', 'account', 'profile',
-  'comment', 'like', 'share', 'follow', 'block', 'report', 'user', 'username', 'password',
-  // Additional common words for expression
-  'okay', 'ok', 'alright', 'right', 'wrong', 'true', 'false', 'real', 'fake', 'nice', 'cool',
-  'awesome', 'amazing', 'wonderful', 'terrible', 'horrible', 'beautiful', 'ugly', 'pretty',
-  'weird', 'strange', 'normal', 'crazy', 'funny', 'serious', 'important', 'interesting',
-  'boring', 'exciting', 'perfect', 'impossible', 'possible', 'difficult', 'simple', 'complex',
-  'anyone', 'everyone', 'someone', 'nobody', 'nothing', 'everything', 'something', 'anything',
-  'somewhere', 'anywhere', 'nowhere', 'everywhere', 'however', 'whatever', 'whenever', 'wherever',
-  'gonna', 'wanna', 'gotta', 'kinda', 'sorta', 'dunno', 'yeah', 'yep', 'nope', 'nah', 'huh',
-  'oh', 'ah', 'uh', 'um', 'hmm', 'wow', 'oops', 'ouch', 'ugh', 'yay', 'hooray', 'damn', 'darn',
-  // Contractions written out
-  'dont', 'cant', 'wont', 'isnt', 'arent', 'wasnt', 'werent', 'havent', 'hasnt', 'hadnt',
-  'doesnt', 'didnt', 'wouldnt', 'couldnt', 'shouldnt', 'mustnt', 'neednt', 'lets', 'thats',
-  'whats', 'heres', 'theres', 'wheres', 'whos', 'hows', 'whys', 'ive', 'youve', 'weve', 'theyve',
-  'ill', 'youll', 'hell', 'shell', 'itll', 'well', 'theyll', 'id', 'youd', 'hed', 'shed', 'wed',
-  'theyd', 'im', 'youre', 'hes', 'shes', 'its', 'were', 'theyre',
-])
-
-// Non-English word patterns (common patterns in transliterated words)
-const nonEnglishPatterns = [
-  // Telugu transliteration patterns
-  /\b(na|naa|nenu|nee|neeku|meeku|vaadu|vaalla|amma|nanna|akka|anna|tammudu|chelli)\b/i,
-  /\b(ela|enti|enduku|evaru|ekkada|eppudu|emiti|anni|inka|kani|kuda|matram|ayina)\b/i,
-  /\b(chala|bagundi|ledhu|ledu|undi|unnaru|untaru|vastaru|velli|ra|raa|po|poo)\b/i,
-  /\b(chesthe|chestunna|chesaru|cheyyandi|cheppandi|chudu|chudandi)\b/i,
-  // Hindi transliteration patterns
-  /\b(kya|kaise|kahan|kyun|kaun|kitna|kab|abhi|bahut|thoda|acha|theek|matlab)\b/i,
-  /\b(haan|nahin|nahi|bilkul|zaroor|shayad|lekin|magar|aur|ya|toh|bhi|hi|jo|ki)\b/i,
-  /\b(mera|meri|mere|tera|teri|tere|uska|uski|unka|unki|hamara|tumhara|apna)\b/i,
-  /\b(kar|karo|karna|kiya|karega|karenge|bol|bolo|bolna|bola|bolega)\b/i,
-  /\b(jao|jaa|jana|gaya|gayi|gaye|jayega|aa|aao|aana|aaya|aayi|aayega)\b/i,
-  // Tamil transliteration patterns
-  /\b(enna|yenna|epdi|enga|yaar|ethu|evalavu|eppadi|illai|iruku|irukku|podu|poga)\b/i,
-  /\b(sollu|sollum|solla|panna|pannunga|vandhu|vandhuttu|vaanga|poonga)\b/i,
-  // Kannada transliteration patterns
-  /\b(nanu|nanna|neenu|ninna|avanu|avalu|ivanu|ivalu|yaaru|elli|yaake|hege)\b/i,
-  /\b(illa|ide|idhe|beku|maadu|maadi|hogi|baa|baaro|baari|nodri|helri)\b/i,
-  // Malayalam transliteration patterns
-  /\b(njan|njaan|nee|ningal|avan|aval|enthu|enthinu|evide|eppol|engane)\b/i,
-  /\b(illa|und|undu|aanu|aano|cheyyuka|poyitta|varumo|venam|venda)\b/i,
-  // Bengali transliteration patterns
-  /\b(ami|tumi|apni|she|ora|amra|tomra|ki|keno|kothay|kokhon|kemon)\b/i,
-  /\b(haan|na|hobe|hoye|korbo|korbe|bolo|bolchi|jabo|jabe|aso|esho)\b/i,
-  // Marathi transliteration patterns
-  /\b(mi|tu|aapan|to|ti|kay|kasa|kuthe|kevha|kiti|honar|karaycha|sangna)\b/i,
-  // Gujarati transliteration patterns
-  /\b(hu|tame|te|aapne|shu|kem|kyaa|kyare|ketlu|chhe|hatu|karvu|bolvu)\b/i,
-  // Punjabi transliteration patterns
-  /\b(main|tu|tussi|oh|assi|ki|kivey|kithe|kado|kitna|hega|karna|bolna)\b/i,
-  // Urdu transliteration patterns
-  /\b(mein|aap|woh|hum|kyaa|kaise|kahan|kyun|kaun|kitna|hoga|karna|kehna)\b/i,
-]
-
-// Check if a word is likely English
-function isLikelyEnglishWord(word: string): boolean {
-  const lowerWord = word.toLowerCase().replace(/[^a-z]/g, '')
-  if (lowerWord.length < 2) return true // Skip very short words
-  
-  // Check if it's in our English dictionary
-  if (commonEnglishWords.has(lowerWord)) return true
-  
-  // Check common English word patterns/suffixes
-  const englishPatterns = [
-    /ing$/, /tion$/, /sion$/, /ness$/, /ment$/, /able$/, /ible$/, /ful$/,
-    /less$/, /ous$/, /ive$/, /al$/, /ly$/, /er$/, /est$/, /ed$/, /es$/, /s$/,
-    /^un/, /^re/, /^pre/, /^dis/, /^mis/, /^over/, /^under/
-  ]
-  
-  for (const pattern of englishPatterns) {
-    if (pattern.test(lowerWord)) {
-      // Check if the root word (without suffix) is also valid
-      const rootMatches = commonEnglishWords.has(lowerWord.replace(pattern, ''))
-      if (rootMatches) return true
-    }
-  }
-  
-  return false
-}
-
-// Detect non-English transliterated words
-function detectNonEnglishWords(text: string): string[] {
-  const found: string[] = []
-  const words = text.toLowerCase().split(/\s+/)
-  
-  // Check against non-English patterns
-  for (const pattern of nonEnglishPatterns) {
-    const matches = text.toLowerCase().match(pattern)
-    if (matches) {
-      found.push(...matches.filter(m => m.length > 1))
-    }
-  }
-  
-  // Check individual words
-  for (const word of words) {
-    const cleanWord = word.replace(/[^a-z]/gi, '')
-    if (cleanWord.length < 3) continue
-    
-    // Skip if it's a known English word
-    if (isLikelyEnglishWord(cleanWord)) continue
-    
-    // Check for common non-English letter combinations
-    const nonEnglishCombos = [
-      /aa/, /ee/, /oo/, /uu/, /ii/, // doubled vowels common in transliteration
-      /kk/, /tt/, /pp/, /dd/, /nn/, /ll/, /mm/, /rr/, /ss/, // doubled consonants
-      /dh/, /th(?!e|is|at|en|em|ey|ose|ere|ough|ough)/, /bh/, /ch(?!ild|ange|eck|oose|ance|urch)/, /gh(?!t)/, /jh/, /kh/, /ph(?!one|oto|ysic)/, /sh(?!e|ow|ould|op|are|ine)/, // aspirated consonants
-      /nk(?!now|now)/, /ng(?!$)/, // nasal combinations  
-    ]
-    
-    let suspiciousCount = 0
-    for (const combo of nonEnglishCombos) {
-      if (combo.test(cleanWord)) {
-        suspiciousCount++
-      }
-    }
-    
-    // If word has multiple suspicious patterns and is not in English dictionary
-    if (suspiciousCount >= 2 && !commonEnglishWords.has(cleanWord)) {
-      found.push(cleanWord)
-    }
-  }
-  
-  return [...new Set(found)]
-}
-
 // Core bad words (we'll detect variations automatically)
 const coreBadWords = [
   // English profanity
@@ -407,10 +223,8 @@ export interface ContentValidation {
   error?: string
   hasBadWords: boolean
   hasNames: boolean
-  hasNonEnglish: boolean
   badWordsFound: string[]
   namesFound: string[]
-  nonEnglishFound: string[]
 }
 
 export function validateContent(content: string): ContentValidation {
@@ -418,10 +232,8 @@ export function validateContent(content: string): ContentValidation {
     valid: true,
     hasBadWords: false,
     hasNames: false,
-    hasNonEnglish: false,
     badWordsFound: [],
     namesFound: [],
-    nonEnglishFound: [],
   }
 
   if (!content.trim()) {
@@ -438,14 +250,11 @@ export function validateContent(content: string): ContentValidation {
   
   const badWordsFound = getBadWordsInText(content)
   const namesFound = getNamesInText(content)
-  const nonEnglishFound = detectNonEnglishWords(content)
   
   result.hasBadWords = badWordsFound.length > 0
   result.hasNames = namesFound.length > 0
-  result.hasNonEnglish = nonEnglishFound.length > 0
   result.badWordsFound = badWordsFound
   result.namesFound = namesFound
-  result.nonEnglishFound = nonEnglishFound
 
   if (result.hasBadWords) {
     return { 
@@ -462,14 +271,6 @@ export function validateContent(content: string): ContentValidation {
       error: 'Please avoid using real names to protect privacy' 
     }
   }
-
-  if (result.hasNonEnglish) {
-    return { 
-      ...result, 
-      valid: false, 
-      error: 'Please use English words only for community accessibility' 
-    }
-  }
   
   return result
 }
@@ -478,22 +279,17 @@ export function validateContent(content: string): ContentValidation {
 export function checkContentRealtime(content: string): {
   hasBadWords: boolean
   hasNames: boolean
-  hasNonEnglish: boolean
   badWordsFound: string[]
   namesFound: string[]
-  nonEnglishFound: string[]
 } {
   const badWordsFound = getBadWordsInText(content)
   const namesFound = getNamesInText(content)
-  const nonEnglishFound = detectNonEnglishWords(content)
   
   return {
     hasBadWords: badWordsFound.length > 0,
     hasNames: namesFound.length > 0,
-    hasNonEnglish: nonEnglishFound.length > 0,
     badWordsFound,
     namesFound,
-    nonEnglishFound,
   }
 }
 

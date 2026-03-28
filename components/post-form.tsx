@@ -22,7 +22,7 @@ export function PostForm({ onSubmit, disabled }: PostFormProps) {
 
   // Real-time content validation
   const contentCheck = checkContentRealtime(content)
-  const hasValidationWarning = contentCheck.hasBadWords || contentCheck.hasNames || contentCheck.hasNonEnglish
+  const hasValidationWarning = contentCheck.hasBadWords || contentCheck.hasNames
 
   // Prevent paste
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
@@ -136,18 +136,6 @@ export function PostForm({ onSubmit, disabled }: PostFormProps) {
                     </span>
                     <span className="block text-xs mt-1 opacity-80">
                       Please protect privacy - avoid using real names
-                    </span>
-                  </p>
-                )}
-                {contentCheck.hasNonEnglish && (
-                  <p className="text-amber-700 dark:text-amber-400">
-                    <span className="font-semibold">Non-English words detected:</span>{' '}
-                    <span className="bg-amber-200/50 dark:bg-amber-900/50 px-1 rounded">
-                      {contentCheck.nonEnglishFound.slice(0, 3).join(', ')}
-                      {contentCheck.nonEnglishFound.length > 3 && '...'}
-                    </span>
-                    <span className="block text-xs mt-1 opacity-80">
-                      Please use English words only for community accessibility
                     </span>
                   </p>
                 )}
