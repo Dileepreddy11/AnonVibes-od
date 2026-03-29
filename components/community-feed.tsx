@@ -12,6 +12,7 @@ import { Spinner } from '@/components/ui/spinner'
 import type { Mood } from '@/lib/types'
 import { AlertCircle, Heart, Users, Archive } from 'lucide-react'
 import { ArchiveModal } from './archive-modal'
+import { DesktopModePopup } from './desktop-mode-popup'
 import { Button } from '@/components/ui/button'
 
 export function CommunityFeed() {
@@ -108,6 +109,9 @@ export function CommunityFeed() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      
+      {/* Desktop Mode Popup for Mobile Users */}
+      <DesktopModePopup />
       
       {/* Archive Modal */}
       <ArchiveModal
