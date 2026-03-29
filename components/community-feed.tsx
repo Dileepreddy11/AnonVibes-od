@@ -107,7 +107,7 @@ export function CommunityFeed() {
   }
 
   return (
-    <div className="lg:h-screen bg-background flex flex-col lg:overflow-hidden">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header />
       
       {/* Desktop Mode Popup for Mobile Users */}
@@ -132,11 +132,11 @@ export function CommunityFeed() {
         <span className="text-[10px] font-medium text-primary">{liveUsersCount}</span>
       </div>
       
-      <main className="lg:flex-1 lg:overflow-hidden">
-        <div className="mx-auto max-w-4xl w-full lg:h-full px-4 py-4 flex flex-col">
-          <div className="grid gap-4 lg:grid-cols-[1fr,280px] lg:h-full lg:min-h-0">
+      <main className="flex-1 overflow-hidden">
+        <div className="mx-auto max-w-4xl w-full h-full px-4 py-4 flex flex-col">
+          <div className="grid gap-4 lg:grid-cols-[1fr,280px] h-full min-h-0">
             {/* Main Content */}
-            <div className="flex flex-col gap-4 lg:min-h-0 lg:overflow-hidden">
+            <div className="flex flex-col gap-4 min-h-0 overflow-hidden">
               {/* Post Form - Fixed */}
               <div className="flex-shrink-0">
                 <PostForm onSubmit={handleCreatePost} disabled={!user} />
@@ -164,7 +164,7 @@ export function CommunityFeed() {
               </div>
 
               {/* Posts - Scrollable */}
-              <div className="lg:flex-1 lg:overflow-y-auto lg:min-h-0 scrollbar-thin">
+              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin">
                 <PostList
                   posts={posts}
                   loading={postsLoading}
@@ -210,7 +210,7 @@ export function CommunityFeed() {
             </div>
 
             {/* Sidebar - Desktop Only */}
-            <aside className="hidden lg:block lg:overflow-y-auto lg:min-h-0">
+            <aside className="hidden lg:block overflow-y-auto min-h-0">
               <div className="space-y-4">
                 <MoodStats />
 
