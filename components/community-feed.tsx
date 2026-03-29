@@ -133,10 +133,10 @@ export function CommunityFeed() {
       </div>
       
       <main className="flex-1 overflow-hidden">
-        <div className="mx-auto max-w-4xl w-full h-full px-4 py-4 flex flex-col">
-          <div className="grid gap-4 lg:grid-cols-[1fr,280px] h-full min-h-0">
+        <div className="mx-auto max-w-4xl w-full h-full px-4 py-4 flex flex-col overflow-hidden">
+          <div className="grid gap-4 lg:grid-cols-[1fr,280px] h-full min-h-0 overflow-hidden">
             {/* Main Content */}
-            <div className="flex flex-col gap-4 min-h-0 overflow-hidden">
+            <div className="flex flex-col gap-4 min-h-0 overflow-hidden" style={{ display: 'flex' }}>
               {/* Post Form - Fixed */}
               <div className="flex-shrink-0">
                 <PostForm onSubmit={handleCreatePost} disabled={!user} />
@@ -164,7 +164,7 @@ export function CommunityFeed() {
               </div>
 
               {/* Posts - Scrollable */}
-              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin">
+              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <PostList
                   posts={posts}
                   loading={postsLoading}
