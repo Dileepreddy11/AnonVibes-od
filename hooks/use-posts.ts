@@ -24,72 +24,25 @@ import { validateContent, checkRateLimit, recordPost, REPORT_THRESHOLD, type Rep
 
 const POSTS_PER_PAGE = 100
 
-// Helper to get the start of the current week (Sunday 00:00:00)
-function getWeekStartSunday(): Date {
+// Helper to get the start of the current week (Friday 00:00:00)
+function getWeekStartFriday(): Date {
   const now = new Date()
-  const dayOfWeek = now.getDay() // 0 = Sunday, 1 = Monday, etc.
+  const dayOfWeek = now.getDay() // 0 = Sunday, 1 = Monday, ..., 5 = Friday
+  // Calculate days since last Friday
+  const daysSinceFriday = dayOfWeek >= 5 ? dayOfWeek - 5 : dayOfWeek + 2
   const startOfWeek = new Date(now)
-  startOfWeek.setDate(now.getDate() - dayOfWeek) // Go back to Sunday
+  startOfWeek.setDate(now.getDate() - daysSinceFriday)
   startOfWeek.setHours(0, 0, 0, 0) // Set to midnight
   return startOfWeek
 }
 
-// Get stored week start from localStorage
-function getStoredWeekStart(): string | null {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('anonvibes_week_start')
-}
-
-// Store current week start
-function setStoredWeekStart(weekStart: string): void {
-  if (typeof window === 'undefined') return
-  localStorage.setItem('anonvibes_week_start', weekStart)
-}
-
 export function usePosts(moodFilter?: Mood | null) {
   const [posts, setPosts] = useState<Post[]>([])
+  const [archivedPosts, setArchivedPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore] = useState(false)
-  const cleanupRanRef = useRef(false)
-
-  // Delete ALL posts every Sunday (when a new week starts)
-  const cleanupPostsOnSunday = useCallback(async () => {
-    if (cleanupRanRef.current) return // Only run once per session
-    cleanupRanRef.current = true
-    
-    try {
-      const currentWeekStart = getWeekStartSunday().toISOString()
-      const storedWeekStart = getStoredWeekStart()
-      
-      // Check if we're in a new week (Sunday reset)
-      if (storedWeekStart !== currentWeekStart) {
-        // New week started - delete ALL posts
-        const postsRef = collection(db, 'posts')
-        const snapshot = await getDocs(postsRef)
-        
-        if (snapshot.docs.length > 0) {
-          const deletePromises = snapshot.docs.map((docSnap) => 
-            deleteDoc(doc(db, 'posts', docSnap.id))
-          )
-          
-          await Promise.all(deletePromises)
-          console.log(`[AnonVibes] Weekly reset: Burned ${snapshot.docs.length} posts`)
-        }
-        
-        // Update stored week start
-        setStoredWeekStart(currentWeekStart)
-      }
-    } catch (err) {
-      console.error('[AnonVibes] Error during weekly cleanup:', err)
-    }
-  }, [])
-
-  // Run cleanup on mount
-  useEffect(() => {
-    cleanupPostsOnSunday()
-  }, [cleanupPostsOnSunday])
 
   useEffect(() => {
     setLoading(true)
@@ -103,7 +56,9 @@ export function usePosts(moodFilter?: Mood | null) {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        let newPosts = snapshot.docs.map((doc) => ({
+        const weekStart = getWeekStartFriday()
+        
+        let allPosts = snapshot.docs.map((doc) => ({
           id: doc.id,
           reportCount: 0,
           reportedBy: [],
@@ -111,19 +66,36 @@ export function usePosts(moodFilter?: Mood | null) {
         })) as Post[]
         
         // Filter out posts that are hidden (reported flag = true means hidden)
-        newPosts = newPosts.filter(post => !post.reported)
+        allPosts = allPosts.filter(post => !post.reported)
         
-        if (moodFilter) {
-          newPosts = newPosts.filter(post => post.mood === moodFilter)
-        }
-        
-        newPosts.sort((a, b) => {
+        // Sort all posts by date
+        allPosts.sort((a, b) => {
           const aTime = a.createdAt?.toDate?.()?.getTime() || 0
           const bTime = b.createdAt?.toDate?.()?.getTime() || 0
           return bTime - aTime
         })
         
-        setPosts(newPosts)
+        // Separate current week posts and archived posts
+        const currentWeekPosts: Post[] = []
+        const archived: Post[] = []
+        
+        allPosts.forEach(post => {
+          const postDate = post.createdAt?.toDate?.()
+          if (postDate && postDate >= weekStart) {
+            currentWeekPosts.push(post)
+          } else {
+            archived.push(post)
+          }
+        })
+        
+        // Apply mood filter to current week posts only
+        let filteredPosts = currentWeekPosts
+        if (moodFilter) {
+          filteredPosts = currentWeekPosts.filter(post => post.mood === moodFilter)
+        }
+        
+        setPosts(filteredPosts)
+        setArchivedPosts(archived)
         setLoading(false)
       },
       (err) => {
@@ -240,6 +212,7 @@ export function usePosts(moodFilter?: Mood | null) {
 
   return {
     posts,
+    archivedPosts,
     loading,
     error,
     hasMore,

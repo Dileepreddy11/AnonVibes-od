@@ -10,12 +10,15 @@ import { MoodFilter } from './mood-filter'
 import { MoodStats } from './mood-stats'
 import { Spinner } from '@/components/ui/spinner'
 import type { Mood } from '@/lib/types'
-import { AlertCircle, Heart, Users } from 'lucide-react'
+import { AlertCircle, Heart, Users, Archive } from 'lucide-react'
+import { ArchiveModal } from './archive-modal'
+import { Button } from '@/components/ui/button'
 
 export function CommunityFeed() {
   const { user, username, loading: authLoading, error: authError } = useAuthContext()
   const [moodFilter, setMoodFilter] = useState<Mood | null>(null)
   const [liveUsersCount, setLiveUsersCount] = useState(11) // Start from 11 as requested
+  const [showArchive, setShowArchive] = useState(false)
   
   // Simulate live users count (random fluctuation between 11-50)
   useEffect(() => {
@@ -33,6 +36,7 @@ export function CommunityFeed() {
   
   const {
     posts,
+    archivedPosts,
     loading: postsLoading,
     error: postsError,
     hasMore,
@@ -105,6 +109,15 @@ export function CommunityFeed() {
     <div className="min-h-screen bg-background">
       <Header />
       
+      {/* Archive Modal */}
+      <ArchiveModal
+        isOpen={showArchive}
+        onClose={() => setShowArchive(false)}
+        posts={archivedPosts}
+        userId={user?.uid}
+        username={username}
+      />
+      
       {/* Live Users Counter - Top Right */}
       <div className="fixed top-16 right-3 z-30 flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 shadow-sm">
         <span className="relative flex h-1.5 w-1.5">
@@ -122,9 +135,25 @@ export function CommunityFeed() {
             {/* Post Form */}
             <PostForm onSubmit={handleCreatePost} disabled={!user} />
 
-            {/* Mood Filter */}
-            <div className="overflow-x-auto pb-1">
-              <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
+            {/* Mood Filter + Archive Button */}
+            <div className="flex items-center gap-2">
+              <div className="flex-1 overflow-x-auto pb-1">
+                <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
+              </div>
+              {archivedPosts.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowArchive(true)}
+                  className="flex-shrink-0 gap-1.5 text-xs"
+                >
+                  <Archive className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Archive</span>
+                  <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-medium">
+                    {archivedPosts.length}
+                  </span>
+                </Button>
+              )}
             </div>
 
             {/* Posts */}
