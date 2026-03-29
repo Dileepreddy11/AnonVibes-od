@@ -107,7 +107,7 @@ export function CommunityFeed() {
   }
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
       {/* Desktop Mode Popup for Mobile Users */}
@@ -132,18 +132,18 @@ export function CommunityFeed() {
         <span className="text-[10px] font-medium text-primary">{liveUsersCount}</span>
       </div>
       
-      <main className="flex-1 overflow-hidden">
-        <div className="mx-auto max-w-4xl w-full px-4 py-4 h-full flex flex-col">
-          <div className="grid gap-4 lg:grid-cols-[1fr,280px] flex-1 min-h-0">
+      <main className="flex-1">
+        <div className="mx-auto max-w-4xl w-full px-4 py-4 flex flex-col">
+          <div className="grid gap-4 lg:grid-cols-[1fr,280px]">
             {/* Main Content */}
-            <div className="flex flex-col gap-4 min-h-0 overflow-hidden">
-              {/* Post Form - Fixed */}
-              <div className="flex-shrink-0">
+            <div className="flex flex-col gap-4">
+              {/* Post Form */}
+              <div>
                 <PostForm onSubmit={handleCreatePost} disabled={!user} />
               </div>
 
-              {/* Mood Filter + Archive Button - Fixed */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Mood Filter + Archive Button */}
+              <div className="flex items-center gap-2">
                 <div className="flex-1 overflow-x-auto pb-1">
                   <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
                 </div>
@@ -164,7 +164,7 @@ export function CommunityFeed() {
               </div>
 
               {/* Posts - Scrollable */}
-              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin">
+              <div className="overflow-y-auto scrollbar-thin">
                 <PostList
                   posts={posts}
                   loading={postsLoading}
@@ -180,8 +180,8 @@ export function CommunityFeed() {
                 />
               </div>
               
-              {/* Mobile Community Mood & Guidelines - Fixed at bottom */}
-              <div className="lg:hidden space-y-3 pt-3 border-t flex-shrink-0">
+              {/* Mobile Community Mood & Guidelines */}
+              <div className="lg:hidden space-y-3 pt-3 border-t">
                 <MoodStats />
                 <div className="rounded-xl border bg-card p-3">
                   <h3 className="mb-2 font-semibold text-card-foreground text-sm">
