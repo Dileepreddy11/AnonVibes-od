@@ -47,7 +47,7 @@ export function Footer() {
         {/* Divider */}
         <div className="border-t mt-8 pt-8">
           <p className="text-sm text-muted-foreground text-center">
-            © 2024 AnonVibes. All rights reserved.
+            © 2026 AnonVibes. All rights reserved.
           </p>
         </div>
       </div>
