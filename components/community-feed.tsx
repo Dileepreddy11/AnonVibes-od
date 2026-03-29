@@ -133,8 +133,8 @@ export function CommunityFeed() {
       </div>
       
       <main className="flex-1 overflow-hidden">
-        <div className="mx-auto max-w-4xl w-full px-4 py-4 h-full flex flex-col">
-          <div className="grid gap-4 lg:grid-cols-[1fr,280px] flex-1 min-h-0">
+        <div className="mx-auto max-w-4xl w-full h-full px-4 py-4 flex flex-col">
+          <div className="grid gap-4 lg:grid-cols-[1fr,280px] h-full min-h-0">
             {/* Main Content */}
             <div className="flex flex-col gap-4 min-h-0 overflow-hidden">
               {/* Post Form - Fixed */}
@@ -210,7 +210,7 @@ export function CommunityFeed() {
             </div>
 
             {/* Sidebar - Desktop Only */}
-            <aside className="hidden lg:block overflow-y-auto">
+            <aside className="hidden lg:block overflow-y-auto min-h-0">
               <div className="space-y-4">
                 <MoodStats />
 
