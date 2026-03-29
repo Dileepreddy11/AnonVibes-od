@@ -41,9 +41,11 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
       if (period === 'daily') {
         periodStart.setHours(0, 0, 0, 0)
       } else {
-        // Weekly - start from Sunday
+        // Weekly - start from Friday (5 = Friday)
         const day = periodStart.getDay()
-        periodStart.setDate(periodStart.getDate() - day)
+        // Calculate days since last Friday
+        const daysSinceFriday = day >= 5 ? day - 5 : day + 2
+        periodStart.setDate(periodStart.getDate() - daysSinceFriday)
         periodStart.setHours(0, 0, 0, 0)
       }
 
@@ -202,7 +204,7 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
         )}
 
         <p className="text-xs text-center text-muted-foreground mt-4">
-          Leaderboard resets {period === 'daily' ? 'every midnight' : 'every Sunday'}
+          Leaderboard resets {period === 'daily' ? 'every midnight' : 'every Friday'}
         </p>
       </DialogContent>
     </Dialog>
