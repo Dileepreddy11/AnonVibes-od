@@ -1,16 +1,14 @@
+'use client'
+
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-
-export const metadata = {
-  title: 'Privacy Policy - AnonVibes',
-  description: 'Learn about how AnonVibes protects your privacy and data.',
-}
+import { AuthProvider } from '@/components/auth-provider'
 
 export default function PrivacyPolicyPage() {
   return (
-    <>
+    <AuthProvider>
       <Header />
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-3xl px-4 py-12">
@@ -82,6 +80,6 @@ export default function PrivacyPolicyPage() {
         </div>
       </div>
       <Footer />
-    </>
+    </AuthProvider>
   )
 }

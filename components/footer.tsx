@@ -7,7 +7,7 @@ export function Footer() {
   return (
     <footer className="border-t bg-background py-8 mt-12">
       <div className="mx-auto max-w-4xl px-4">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 md:grid-cols-2">
           {/* Brand Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -21,29 +21,7 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Quick Links */}
-          <div className="space-y-3">
-            <h4 className="font-semibold text-sm">Community</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
-                  Community Guidelines
-                </Link>
-              </li>
-              <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
-                  Report Content
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
+          {/* Legal Links */}
           <div className="space-y-3">
             <h4 className="font-semibold text-sm">Legal</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
@@ -64,28 +42,13 @@ export function Footer() {
               </li>
             </ul>
           </div>
-
-          {/* Contact */}
-          <div className="space-y-3">
-            <h4 className="font-semibold text-sm">Get in Touch</h4>
-            <p className="text-sm text-muted-foreground">
-              Have questions or feedback?
-            </p>
-            <a 
-              href="mailto:anonvibes.offical@gmail.com"
-              className="text-sm text-primary hover:underline transition-colors"
-            >
-              anonvibes.offical@gmail.com
-            </a>
-          </div>
         </div>
 
         {/* Divider */}
         <div className="border-t mt-8 pt-8">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row text-sm text-muted-foreground">
-            <p>© 2024 AnonVibes. All rights reserved.</p>
-            <p>Made with <Heart className="h-3 w-3 inline text-primary" fill="currentColor" /> for mental wellness</p>
-          </div>
+          <p className="text-sm text-muted-foreground text-center">
+            © 2024 AnonVibes. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

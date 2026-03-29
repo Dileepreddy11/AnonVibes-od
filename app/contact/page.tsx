@@ -6,6 +6,7 @@ import { ArrowLeft, Mail, Send } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { AuthProvider } from '@/components/auth-provider'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -46,7 +47,7 @@ export default function ContactPage() {
   }
 
   return (
-    <>
+    <AuthProvider>
       <Header />
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-3xl px-4 py-12">
@@ -198,6 +199,6 @@ export default function ContactPage() {
         </div>
       </div>
       <Footer />
-    </>
+    </AuthProvider>
   )
 }

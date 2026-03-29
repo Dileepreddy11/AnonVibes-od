@@ -1,16 +1,14 @@
+'use client'
+
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-
-export const metadata = {
-  title: 'Terms & Conditions - AnonVibes',
-  description: 'Review the terms and conditions for using AnonVibes platform.',
-}
+import { AuthProvider } from '@/components/auth-provider'
 
 export default function TermsPage() {
   return (
-    <>
+    <AuthProvider>
       <Header />
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-3xl px-4 py-12">
@@ -106,6 +104,6 @@ export default function TermsPage() {
         </div>
       </div>
       <Footer />
-    </>
+    </AuthProvider>
   )
 }
