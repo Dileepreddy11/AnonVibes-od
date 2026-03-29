@@ -23,7 +23,28 @@ import type { Post, Mood } from '@/lib/types'
 import { validateContent, checkRateLimit, recordPost, REPORT_THRESHOLD, type ReportReason } from '@/lib/moderation'
 
 const POSTS_PER_PAGE = 100
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
+
+// Helper to get the start of the current week (Sunday 00:00:00)
+function getWeekStartSunday(): Date {
+  const now = new Date()
+  const dayOfWeek = now.getDay() // 0 = Sunday, 1 = Monday, etc.
+  const startOfWeek = new Date(now)
+  startOfWeek.setDate(now.getDate() - dayOfWeek) // Go back to Sunday
+  startOfWeek.setHours(0, 0, 0, 0) // Set to midnight
+  return startOfWeek
+}
+
+// Get stored week start from localStorage
+function getStoredWeekStart(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('anonvibes_week_start')
+}
+
+// Store current week start
+function setStoredWeekStart(weekStart: string): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem('anonvibes_week_start', weekStart)
+}
 
 export function usePosts(moodFilter?: Mood | null) {
   const [posts, setPosts] = useState<Post[]>([])
@@ -33,40 +54,42 @@ export function usePosts(moodFilter?: Mood | null) {
   const [loadingMore] = useState(false)
   const cleanupRanRef = useRef(false)
 
-  // Auto-delete posts older than 7 days
-  const cleanupOldPosts = useCallback(async () => {
+  // Delete ALL posts every Sunday (when a new week starts)
+  const cleanupPostsOnSunday = useCallback(async () => {
     if (cleanupRanRef.current) return // Only run once per session
     cleanupRanRef.current = true
     
     try {
-      const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS)
-      const postsRef = collection(db, 'posts')
-      const snapshot = await getDocs(postsRef)
+      const currentWeekStart = getWeekStartSunday().toISOString()
+      const storedWeekStart = getStoredWeekStart()
       
-      const deletePromises: Promise<void>[] = []
-      
-      snapshot.docs.forEach((docSnap) => {
-        const data = docSnap.data()
-        const createdAt = data.createdAt?.toDate?.()
+      // Check if we're in a new week (Sunday reset)
+      if (storedWeekStart !== currentWeekStart) {
+        // New week started - delete ALL posts
+        const postsRef = collection(db, 'posts')
+        const snapshot = await getDocs(postsRef)
         
-        if (createdAt && createdAt < sevenDaysAgo) {
-          deletePromises.push(deleteDoc(doc(db, 'posts', docSnap.id)))
+        if (snapshot.docs.length > 0) {
+          const deletePromises = snapshot.docs.map((docSnap) => 
+            deleteDoc(doc(db, 'posts', docSnap.id))
+          )
+          
+          await Promise.all(deletePromises)
+          console.log(`[AnonVibes] Weekly reset: Burned ${snapshot.docs.length} posts`)
         }
-      })
-      
-      if (deletePromises.length > 0) {
-        await Promise.all(deletePromises)
-        console.log(`[AnonVibes] Cleaned up ${deletePromises.length} posts older than 7 days`)
+        
+        // Update stored week start
+        setStoredWeekStart(currentWeekStart)
       }
     } catch (err) {
-      console.error('[AnonVibes] Error cleaning up old posts:', err)
+      console.error('[AnonVibes] Error during weekly cleanup:', err)
     }
   }, [])
 
   // Run cleanup on mount
   useEffect(() => {
-    cleanupOldPosts()
-  }, [cleanupOldPosts])
+    cleanupPostsOnSunday()
+  }, [cleanupPostsOnSunday])
 
   useEffect(() => {
     setLoading(true)
@@ -80,9 +103,6 @@ export function usePosts(moodFilter?: Mood | null) {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const now = Date.now()
-        const sevenDaysAgo = now - SEVEN_DAYS_MS
-        
         let newPosts = snapshot.docs.map((doc) => ({
           id: doc.id,
           reportCount: 0,
@@ -91,12 +111,7 @@ export function usePosts(moodFilter?: Mood | null) {
         })) as Post[]
         
         // Filter out posts that are hidden (reported flag = true means hidden)
-        // Also filter out posts older than 7 days (in case cleanup hasn't run yet)
-        newPosts = newPosts.filter(post => {
-          if (post.reported) return false
-          const createdAt = post.createdAt?.toDate?.()?.getTime() || 0
-          return createdAt > sevenDaysAgo
-        })
+        newPosts = newPosts.filter(post => !post.reported)
         
         if (moodFilter) {
           newPosts = newPosts.filter(post => post.mood === moodFilter)

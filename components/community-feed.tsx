@@ -102,7 +102,7 @@ export function CommunityFeed() {
   }
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-background">
       <Header />
       
       {/* Live Users Counter - Top Right */}
@@ -115,69 +115,65 @@ export function CommunityFeed() {
         <span className="text-[10px] font-medium text-primary">{liveUsersCount}</span>
       </div>
       
-      <main className="flex-1 overflow-hidden flex flex-col">
-        <div className="mx-auto max-w-4xl w-full px-4 py-4 flex-1 flex flex-col overflow-hidden">
-          <div className="grid gap-4 lg:grid-cols-[1fr,280px] flex-1 overflow-hidden">
-            {/* Main Content */}
-            <div className="flex flex-col gap-4 overflow-hidden">
-              {/* Post Form - Fixed at top */}
-              <div className="flex-shrink-0">
-                <PostForm onSubmit={handleCreatePost} disabled={!user} />
-              </div>
+      <main className="mx-auto max-w-4xl w-full px-4 py-4">
+        <div className="grid gap-4 lg:grid-cols-[1fr,280px]">
+          {/* Main Content */}
+          <div className="flex flex-col gap-4">
+            {/* Post Form */}
+            <PostForm onSubmit={handleCreatePost} disabled={!user} />
 
-              {/* Mood Filter - Fixed */}
-              <div className="overflow-x-auto pb-1 flex-shrink-0">
-                <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
-              </div>
-
-              {/* Posts - Scrollable Container (ONLY posts scroll) */}
-              <div className="flex-1 overflow-y-auto min-h-0 rounded-xl scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-                <PostList
-                  posts={posts}
-                  loading={postsLoading}
-                  error={postsError}
-                  hasMore={hasMore}
-                  loadingMore={loadingMore}
-                  onLoadMore={loadMore}
-                  userId={user?.uid}
-                  username={username}
-                  onReport={handleReport}
-                  onCommentAdded={incrementCommentCount}
-                  hasUserReported={hasUserReported}
-                />
-              </div>
-              
-              {/* Mobile Community Mood & Guidelines - Fixed at bottom (does NOT scroll) */}
-              <div className="lg:hidden flex-shrink-0 space-y-3 pt-2 border-t">
-                <MoodStats />
-                <div className="rounded-xl border bg-card p-3">
-                  <h3 className="mb-2 font-semibold text-card-foreground text-sm">
-                    Community Guidelines
-                  </h3>
-                  <ul className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">1.</span>
-                      Be kind & supportive
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">2.</span>
-                      Respect anonymity
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">3.</span>
-                      Share genuinely
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">4.</span>
-                      Report harmful content
-                    </li>
-                  </ul>
-                </div>
-              </div>
+            {/* Mood Filter */}
+            <div className="overflow-x-auto pb-1">
+              <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
             </div>
 
-            {/* Sidebar - Desktop Only */}
-            <aside className="hidden lg:flex flex-col gap-4 overflow-y-auto">
+            {/* Posts */}
+            <PostList
+              posts={posts}
+              loading={postsLoading}
+              error={postsError}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+              onLoadMore={loadMore}
+              userId={user?.uid}
+              username={username}
+              onReport={handleReport}
+              onCommentAdded={incrementCommentCount}
+              hasUserReported={hasUserReported}
+            />
+            
+            {/* Mobile Community Mood & Guidelines - After posts */}
+            <div className="lg:hidden space-y-3 pt-4 border-t">
+              <MoodStats />
+              <div className="rounded-xl border bg-card p-3">
+                <h3 className="mb-2 font-semibold text-card-foreground text-sm">
+                  Community Guidelines
+                </h3>
+                <ul className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-primary font-medium">1.</span>
+                    Be kind & supportive
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-primary font-medium">2.</span>
+                    Respect anonymity
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-primary font-medium">3.</span>
+                    Share genuinely
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-primary font-medium">4.</span>
+                    Report harmful content
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar - Desktop Only */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-20 space-y-4">
               <MoodStats />
 
               {/* Community Guidelines */}
@@ -204,8 +200,8 @@ export function CommunityFeed() {
                   </li>
                 </ul>
               </div>
-            </aside>
-          </div>
+            </div>
+          </aside>
         </div>
       </main>
     </div>
