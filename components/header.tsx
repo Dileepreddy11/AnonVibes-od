@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { MyPostsModal } from './my-posts-modal'
 import { LeaderboardModal } from './leaderboard-modal'
 import { MyReportsModal } from './my-reports-modal'
+import { NotificationsBell } from './notifications-bell'
 import { useAuthContext } from './auth-provider'
 import { cn } from '@/lib/utils'
 
@@ -84,6 +85,9 @@ export function Header() {
 
             {user && (
               <>
+                {/* Notifications Bell */}
+                <NotificationsBell />
+
                 {/* My Posts */}
                 <Button
                   variant="ghost"

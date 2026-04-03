@@ -10,7 +10,6 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'AnonVibes - Anonymous Mood Community',
   description: 'Express yourself freely and anonymously. Join a supportive community where you can share your thoughts and emotions without judgment.',
-  generator: 'v0.app',
   icons: {
     icon: [
       {

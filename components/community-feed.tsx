@@ -1,5 +1,7 @@
 'use client'
 
+// Notifications system integrated - Live users counter removed
+
 import { useState, useEffect } from 'react'
 import { useAuthContext } from './auth-provider'
 import { usePosts } from '@/hooks/use-posts'
@@ -10,7 +12,7 @@ import { MoodFilter } from './mood-filter'
 import { MoodStats } from './mood-stats'
 import { Spinner } from '@/components/ui/spinner'
 import type { Mood } from '@/lib/types'
-import { AlertCircle, Heart, Users, Archive } from 'lucide-react'
+import { AlertCircle, Heart, Archive } from 'lucide-react'
 import { ArchiveModal } from './archive-modal'
 import { DesktopModePopup } from './desktop-mode-popup'
 import { Button } from '@/components/ui/button'
@@ -18,22 +20,7 @@ import { Button } from '@/components/ui/button'
 export function CommunityFeed() {
   const { user, username, loading: authLoading, error: authError } = useAuthContext()
   const [moodFilter, setMoodFilter] = useState<Mood | null>(null)
-  const [liveUsersCount, setLiveUsersCount] = useState(11) // Start from 11 as requested
   const [showArchive, setShowArchive] = useState(false)
-  
-  // Simulate live users count (random fluctuation between 11-50)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveUsersCount(prev => {
-        const change = Math.random() > 0.5 ? 1 : -1
-        const newCount = prev + change
-        // Keep between 11 and 50
-        return Math.max(11, Math.min(50, newCount))
-      })
-    }, 5000) // Update every 5 seconds
-    
-    return () => clearInterval(interval)
-  }, [])
   
   const {
     posts,
@@ -121,16 +108,6 @@ export function CommunityFeed() {
         userId={user?.uid}
         username={username}
       />
-      
-      {/* Live Users Counter - Top Right */}
-      <div className="fixed top-16 right-3 z-30 flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 shadow-sm">
-        <span className="relative flex h-1.5 w-1.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
-        </span>
-        <Users className="h-3 w-3 text-primary" />
-        <span className="text-[10px] font-medium text-primary">{liveUsersCount}</span>
-      </div>
       
       <main className="flex-1 overflow-hidden">
         <div className="mx-auto max-w-4xl w-full h-full px-4 py-4 flex flex-col">
