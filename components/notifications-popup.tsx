@@ -4,15 +4,46 @@ import { useState, useEffect } from 'react'
 import { Bell, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useNotifications } from '@/hooks/use-notifications'
+import {
+  requestNotificationPermission,
+  getNotificationPermission,
+  getNotificationPreference,
+  saveNotificationPreference,
+} from '@/lib/push-notification-manager'
 import { cn } from '@/lib/utils'
 
 export function NotificationsPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { isEnabled, toggleNotifications, notifications } = useNotifications()
+  const { isEnabled, toggleNotifications } = useNotifications()
   const [mounted, setMounted] = useState(false)
+  const [browserPermission, setBrowserPermission] = useState<NotificationPermission | null>(null)
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+    const permission = getNotificationPermission()
+    setBrowserPermission(permission || null)
   }, [])
+
+  const handleToggleNotifications = async () => {
+    if (!isEnabled) {
+      // Turning ON notifications
+      setIsRequestingPermission(true)
+      const granted = await requestNotificationPermission()
+      setIsRequestingPermission(false)
+
+      if (granted) {
+        saveNotificationPreference(true)
+        toggleNotifications(true)
+        setBrowserPermission('granted')
+      } else {
+        console.warn('Notification permission denied')
+      }
+    } else {
+      // Turning OFF notifications
+      saveNotificationPreference(false)
+      toggleNotifications(false)
+    }
+  }
 
   if (!mounted) return null
 
@@ -54,10 +85,11 @@ export function NotificationsPopup({ isOpen, onClose }: { isOpen: boolean; onClo
           {/* Toggle Section */}
           <div className="mb-4 space-y-3">
             <p className="text-sm text-muted-foreground">
-              Get notified about what's happening in the community.
+              Get real-time notifications about posts, comments, and reactions.
             </p>
             <Button
-              onClick={() => toggleNotifications(!isEnabled)}
+              onClick={handleToggleNotifications}
+              disabled={isRequestingPermission}
               className={cn(
                 'w-full transition-all',
                 isEnabled
@@ -65,51 +97,52 @@ export function NotificationsPopup({ isOpen, onClose }: { isOpen: boolean; onClo
                   : 'bg-primary hover:bg-primary/90 text-primary-foreground'
               )}
             >
-              {isEnabled ? 'Turn Off Notifications' : 'Turn On Notifications'}
+              {isRequestingPermission
+                ? 'Requesting permission...'
+                : isEnabled
+                  ? 'Turn Off Notifications'
+                  : 'Turn On Notifications'}
             </Button>
           </div>
+
+          {/* Permission Status */}
+          {browserPermission === 'denied' && (
+            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+              <p className="text-xs text-red-600 dark:text-red-400">
+                Notification permission was denied. Check your browser settings to enable notifications.
+              </p>
+            </div>
+          )}
 
           {/* Divider */}
           <div className="border-t mb-4" />
 
-          {/* Notifications List */}
-          {isEnabled ? (
-            notifications.length > 0 ? (
-              <div className="space-y-2">
-                {notifications.map(notification => (
-                  <div
-                    key={notification.id}
-                    className="p-3 rounded-lg bg-secondary/30 border border-secondary/50 text-sm space-y-1"
-                  >
-                    <p className="font-medium text-foreground">{notification.message}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {notification.timestamp.toLocaleTimeString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center">
-                <Bell className="h-12 w-12 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  No notifications yet. Check back soon!
-                </p>
-              </div>
-            )
-          ) : (
-            <div className="py-8 text-center">
-              <Bell className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-4">
-                Notifications are turned off. Turn them on to stay updated!
-              </p>
+          {/* Info Section */}
+          <div className="space-y-3">
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-2">You&apos;ll receive notifications for:</h4>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">📝</span>
+                  <span>New posts in the community</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">💬</span>
+                  <span>Comments on your posts</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">❤️</span>
+                  <span>Reactions and engagement</span>
+                </li>
+              </ul>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Info Footer */}
         <div className="border-t bg-secondary/20 p-3">
           <p className="text-xs text-muted-foreground text-center">
-            You&apos;ll receive hourly notifications about new posts, comments, and reactions.
+            Real-time notifications appear even when you&apos;re away from the app
           </p>
         </div>
       </div>
