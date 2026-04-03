@@ -133,7 +133,7 @@ export function MyPostsModal({ isOpen, onClose, userId, username }: MyPostsModal
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto scrollbar-thin p-4">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Spinner className="h-8 w-8 mb-4" />
@@ -141,7 +141,7 @@ export function MyPostsModal({ isOpen, onClose, userId, username }: MyPostsModal
             </div>
           ) : selectedPost ? (
             // Post Detail View
-            <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="animate-in fade-in slide-in-from-right-4 duration-300 overflow-y-auto">
               {/* Post Content */}
               <div className="rounded-lg border bg-secondary/30 p-4 mb-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -255,7 +255,7 @@ export function MyPostsModal({ isOpen, onClose, userId, username }: MyPostsModal
               </p>
             </div>
           ) : (
-            // Posts List
+            // Posts List - Scrollable
             <div className="space-y-3">
               {posts.map((post, index) => (
                 <div

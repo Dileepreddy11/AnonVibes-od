@@ -95,7 +95,7 @@ export function CommunityFeed() {
   }
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
       {/* Notification System Initializer */}
@@ -113,18 +113,18 @@ export function CommunityFeed() {
         username={username}
       />
       
-      <main className="flex-1 overflow-hidden">
-        <div className="mx-auto max-w-4xl w-full h-full px-4 py-4 flex flex-col">
-          <div className="grid gap-4 lg:grid-cols-[1fr,280px] h-full min-h-0">
+      <main className="flex-1 w-full">
+        <div className="mx-auto max-w-4xl w-full px-4 py-4">
+          <div className="grid gap-4 lg:grid-cols-[1fr,280px]">
             {/* Main Content */}
-            <div className="flex flex-col gap-4 min-h-0">
+            <div className="flex flex-col gap-4">
               {/* Post Form - Fixed */}
-              <div className="flex-shrink-0">
+              <div>
                 <PostForm onSubmit={handleCreatePost} disabled={!user} />
               </div>
 
               {/* Mood Filter + Archive Button - Fixed */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2">
                 <div className="flex-1 overflow-x-auto pb-1">
                   <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
                 </div>
@@ -145,11 +145,7 @@ export function CommunityFeed() {
               </div>
 
               {/* Posts - Scrollable */}
-              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin" style={{ 
-                WebkitOverflowScrolling: 'touch',
-                scrollBehavior: 'smooth',
-                overscrollBehavior: 'contain'
-              }}>
+              <div className="scrollbar-thin">
                 <PostList
                   posts={posts}
                   loading={postsLoading}
@@ -165,8 +161,8 @@ export function CommunityFeed() {
                 />
               </div>
               
-              {/* Mobile Community Mood & Guidelines - Fixed at bottom */}
-              <div className="lg:hidden space-y-3 pt-3 border-t flex-shrink-0">
+              {/* Mobile Community Mood & Guidelines - Below posts */}
+              <div className="lg:hidden space-y-3 pt-3 border-t">
                 <MoodStats />
                 <div className="rounded-xl border bg-card p-3">
                   <h3 className="mb-2 font-semibold text-card-foreground text-sm">
@@ -195,8 +191,8 @@ export function CommunityFeed() {
             </div>
 
             {/* Sidebar - Desktop Only */}
-            <aside className="hidden lg:block overflow-y-auto min-h-0">
-              <div className="space-y-4">
+            <aside className="hidden lg:block">
+              <div className="space-y-4 sticky top-20">
                 <MoodStats />
 
                 {/* Community Guidelines */}
