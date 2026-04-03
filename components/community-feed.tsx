@@ -1,6 +1,6 @@
 'use client'
 
-// Notifications system integrated - Live users counter removed
+// Notifications system integrated - Live users counter removed - Real-time push notifications enabled
 
 import { useState, useEffect } from 'react'
 import { useAuthContext } from './auth-provider'
@@ -15,6 +15,7 @@ import type { Mood } from '@/lib/types'
 import { AlertCircle, Heart, Archive } from 'lucide-react'
 import { ArchiveModal } from './archive-modal'
 import { DesktopModePopup } from './desktop-mode-popup'
+import { NotificationInitializer } from './notification-initializer'
 import { Button } from '@/components/ui/button'
 
 export function CommunityFeed() {
@@ -96,6 +97,9 @@ export function CommunityFeed() {
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header />
+      
+      {/* Notification System Initializer */}
+      <NotificationInitializer />
       
       {/* Desktop Mode Popup for Mobile Users */}
       <DesktopModePopup />
