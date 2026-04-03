@@ -114,9 +114,9 @@ export function CommunityFeed() {
       />
       
       <main className="flex-1 w-full">
-        <div className="mx-auto max-w-4xl w-full px-4 py-4 flex flex-col lg:grid lg:grid-cols-[1fr,280px] gap-4 h-[calc(100vh-80px)]">
+        <div className="mx-auto max-w-4xl w-full px-4 py-4 flex flex-col lg:grid lg:grid-cols-[1fr,280px] gap-4 lg:h-[calc(100vh-80px)]">
           {/* Main Content Area */}
-          <div className="flex flex-col gap-4 w-full min-h-0">
+          <div className="flex flex-col gap-4 w-full lg:min-h-0">
             {/* Post Form - Fixed Height */}
             <div className="flex-shrink-0">
               <PostForm onSubmit={handleCreatePost} disabled={!user} />
@@ -144,7 +144,7 @@ export function CommunityFeed() {
             </div>
 
             {/* Posts - Scrollable Container */}
-            <div className="flex-1 overflow-y-auto min-h-0" style={{ 
+            <div className="flex-1 overflow-y-auto lg:min-h-0" style={{ 
               WebkitOverflowScrolling: 'touch',
               scrollBehavior: 'smooth',
               overscrollBehavior: 'contain'
