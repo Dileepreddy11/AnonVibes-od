@@ -1,5 +1,9 @@
 // Push Notification Manager - Handles browser notifications and permissions
 
+// Track notification timestamps to prevent spam
+const notificationTimestamps: Map<string, number> = new Map();
+const NOTIFICATION_THROTTLE_MS = 2000; // Minimum 2 seconds between notifications of same type
+
 export interface PushNotificationOptions {
   title: string;
   body: string;
@@ -12,6 +16,22 @@ export interface PushNotificationOptions {
  */
 export function supportsNotifications(): boolean {
   return typeof window !== 'undefined' && 'Notification' in window;
+}
+
+/**
+ * Check if enough time has passed since last notification of this type (anti-spam)
+ */
+function shouldThrottleNotification(tag: string): boolean {
+  const lastTime = notificationTimestamps.get(tag) || 0;
+  const now = Date.now();
+  
+  if (now - lastTime < NOTIFICATION_THROTTLE_MS) {
+    console.log(`[v0] Throttling notification ${tag} - shown ${now - lastTime}ms ago`);
+    return true;
+  }
+  
+  notificationTimestamps.set(tag, now);
+  return false;
 }
 
 /**
@@ -49,38 +69,56 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
 /**
  * Show a notification using the Notification API
+ * Implements anti-spam throttling to prevent Chrome from blocking notifications
  */
 export async function showNotification(options: PushNotificationOptions): Promise<void> {
   if (!supportsNotifications()) {
-    console.warn('Notifications not supported');
+    console.warn('[v0] Notifications not supported');
     return;
   }
 
   const permission = getNotificationPermission();
   
   if (permission !== 'granted') {
-    console.warn('Notification permission not granted');
+    console.warn('[v0] Notification permission not granted');
+    return;
+  }
+
+  // Use tag to throttle same type of notifications
+  const notificationTag = options.tag || 'notification';
+  
+  // Check throttling to prevent spam detection
+  if (shouldThrottleNotification(notificationTag)) {
     return;
   }
 
   try {
+    const notificationOptions = {
+      body: options.body,
+      icon: options.icon || '/icon-192x192.png',
+      badge: '/icon-96x96.png',
+      tag: notificationTag, // Use for replacing duplicate notifications
+      requireInteraction: false,
+      silent: false,
+    };
+
     // If service worker is available, show notification through it
     if (supportsServiceWorker() && navigator.serviceWorker.controller) {
+      console.log(`[v0] Sending notification via service worker: ${options.title}`);
       navigator.serviceWorker.controller.postMessage({
         type: 'SHOW_NOTIFICATION',
-        payload: options,
+        payload: {
+          title: options.title,
+          ...notificationOptions,
+        },
       });
     } else {
       // Fallback: Show notification directly
-      new Notification(options.title, {
-        body: options.body,
-        icon: options.icon || '/icon-192x192.png',
-        badge: '/icon-96x96.png',
-        tag: options.tag || 'anonvibes-notification',
-      });
+      console.log(`[v0] Showing notification directly: ${options.title}`);
+      new Notification(options.title, notificationOptions);
     }
   } catch (error) {
-    console.error('Error showing notification:', error);
+    console.error('[v0] Error showing notification:', error);
   }
 }
 

@@ -22,27 +22,27 @@ interface RealtimeEvent {
 
 const notificationMessages = {
   post: [
-    "What's on your mind? Someone just shared their thoughts 💭",
-    'A new vibe just dropped! Check it out',
-    "New mood on the wall! See what's being shared",
-    'Someone shared a moment anonymously 🤔',
+    "Someone just shared their thoughts",
+    'A new post dropped! Check it out',
+    "New vibe on the wall! See what's being shared",
+    'Someone shared a moment anonymously',
   ],
   comment: [
-    'Someone responded to a post! 💬',
-    'Your post got a comment! 👀',
-    'New comment on the discussion! 💭',
-    'Someone has something to say! 📢',
+    'Someone responded to your post',
+    'Your post got a comment',
+    'New comment on the discussion',
+    'Someone has something to say',
   ],
   reaction: [
-    'Your post resonated with someone! ❤️',
-    'Someone loved your post! 💕',
-    'Your vibe got a reaction! 😊',
-    'Your post touched someone! ✨',
+    'Your post resonated with someone',
+    'Someone liked your post',
+    'Your post got a reaction',
+    'Your post touched someone',
   ],
   reply: [
-    'Someone replied to your comment! 💬',
-    'New reply on your comment! 👋',
-    'Someone answered your comment! 📝',
+    'Someone replied to your comment',
+    'New reply on your comment',
+    'Someone answered your comment',
   ],
 }
 
@@ -93,7 +93,7 @@ export function useRealtimeEvents(userId: string | null) {
 
         const unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
           snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added' && shouldShowNotification('post')) {
+            if (change.type === 'added' && shouldShowNotification('post-type')) {
               const post = change.doc.data()
               console.log('[v0] New post detected:', { postId: change.doc.id, userId: post.userId, currentUserId: userId })
               
@@ -101,9 +101,9 @@ export function useRealtimeEvents(userId: string | null) {
               if (post.userId !== userId) {
                 console.log('[v0] Showing new post notification')
                 showNotification({
-                  title: '💭 New Post',
+                  title: 'New Post',
                   body: getRandomMessage('post'),
-                  tag: `post-${change.doc.id}`,
+                  tag: 'post-type', // Same tag replaces older post notifications (Chrome anti-spam)
                 })
               }
             }
@@ -117,17 +117,17 @@ export function useRealtimeEvents(userId: string | null) {
 
         const unsubscribeComments = onSnapshot(commentsQuery, (snapshot) => {
           snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added' && shouldShowNotification('comment')) {
+            if (change.type === 'added' && shouldShowNotification('comment-type')) {
               const comment = change.doc.data()
               console.log('[v0] New comment detected:', { commentId: change.doc.id, postId: comment.postId })
               
               // Show notification for comments on user's posts
-              if (comment.userId !== userId && shouldShowNotification(`comment-${comment.postId}`)) {
+              if (comment.userId !== userId) {
                 console.log('[v0] Showing new comment notification')
                 showNotification({
-                  title: '💬 New Comment',
+                  title: 'New Comment',
                   body: getRandomMessage('comment'),
-                  tag: `comment-${change.doc.id}`,
+                  tag: 'comment-type', // Same tag replaces older comment notifications
                 })
               }
             }
@@ -141,17 +141,17 @@ export function useRealtimeEvents(userId: string | null) {
 
         const unsubscribeReactions = onSnapshot(reactionsQuery, (snapshot) => {
           snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added' && shouldShowNotification('reaction')) {
+            if (change.type === 'added' && shouldShowNotification('reaction-type')) {
               const reaction = change.doc.data()
               console.log('[v0] New reaction detected:', { reactionId: change.doc.id, postId: reaction.postId })
               
               // Show notification for reactions on user's posts
-              if (reaction.userId !== userId && shouldShowNotification(`reaction-${reaction.postId}`)) {
+              if (reaction.userId !== userId) {
                 console.log('[v0] Showing new reaction notification')
                 showNotification({
-                  title: '❤️ Someone Reacted',
+                  title: 'New Like',
                   body: getRandomMessage('reaction'),
-                  tag: `reaction-${change.doc.id}`,
+                  tag: 'reaction-type', // Same tag replaces older reaction notifications
                 })
               }
             }
