@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { getNotificationPreference, saveNotificationPreference } from '@/lib/push-notification-manager'
 
 export type NotificationType = 'post' | 'comment' | 'reaction'
 
@@ -12,21 +13,22 @@ export interface Notification {
 
 const NOTIFICATION_MESSAGES = {
   post: [
-    'What\'s on your mind right now?',
-    'Something weighing on you? Share it!',
-    'What are you feeling today?',
-    'Waiting for your thoughts...',
+    "What's on your mind? Someone just shared their thoughts 💭",
+    'A new vibe just dropped! Check it out',
+    "New mood on the wall! See what's being shared",
+    'Someone shared a moment anonymously 🤔',
   ],
   comment: [
-    'Someone commented on your post!',
-    'Your post got a reply!',
-    'New comment on your story!',
+    'Someone responded to a post! 💬',
+    'Your post got a comment! 👀',
+    'New comment on the discussion! 💭',
+    'Someone has something to say! 📢',
   ],
   reaction: [
-    'Someone connected with your post!',
-    'Your post got a reaction!',
-    'Someone felt your vibe!',
-    'Your post resonated with someone!',
+    'Your post resonated with someone! ❤️',
+    'Someone loved your post! 💕',
+    'Your vibe got a reaction! 😊',
+    'Your post touched someone! ✨',
   ],
 }
 
@@ -34,21 +36,19 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isEnabled, setIsEnabled] = useState(false)
 
-  // Load preferences from localStorage
+  // Load preferences from localStorage and sync with preference manager
   useEffect(() => {
-    const stored = localStorage.getItem('anonvibes_notifications_enabled')
-    if (stored !== null) {
-      setIsEnabled(JSON.parse(stored))
-    }
+    const stored = getNotificationPreference()
+    setIsEnabled(stored)
   }, [])
 
-  // Save preference to localStorage
+  // Toggle notifications and save preference
   const toggleNotifications = useCallback((enabled: boolean) => {
     setIsEnabled(enabled)
-    localStorage.setItem('anonvibes_notifications_enabled', JSON.stringify(enabled))
+    saveNotificationPreference(enabled)
   }, [])
 
-  // Add a new notification
+  // Add a new notification (called by real-time listeners)
   const addNotification = useCallback((type: NotificationType) => {
     if (!isEnabled) return
 
@@ -70,20 +70,6 @@ export function useNotifications() {
       setNotifications(prev => prev.filter(n => n.id !== notification.id))
     }, 5000)
   }, [isEnabled])
-
-  // Simulate receiving notifications every hour
-  useEffect(() => {
-    if (!isEnabled) return
-
-    const notificationTypes: NotificationType[] = ['post', 'comment', 'reaction']
-    
-    const interval = setInterval(() => {
-      const randomType = notificationTypes[Math.floor(Math.random() * notificationTypes.length)]
-      addNotification(randomType)
-    }, 60 * 60 * 1000) // Every hour
-
-    return () => clearInterval(interval)
-  }, [isEnabled, addNotification])
 
   return {
     notifications,

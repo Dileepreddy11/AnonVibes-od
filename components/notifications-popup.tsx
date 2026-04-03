@@ -27,21 +27,29 @@ export function NotificationsPopup({ isOpen, onClose }: { isOpen: boolean; onClo
   const handleToggleNotifications = async () => {
     if (!isEnabled) {
       // Turning ON notifications
+      console.log('[v0] User attempting to enable notifications')
       setIsRequestingPermission(true)
       const granted = await requestNotificationPermission()
       setIsRequestingPermission(false)
 
       if (granted) {
+        console.log('[v0] Notification permission granted, saving preference and enabling notifications')
         saveNotificationPreference(true)
         toggleNotifications(true)
         setBrowserPermission('granted')
+        // Dispatch storage event to notify other components
+        window.dispatchEvent(new Event('storage'))
       } else {
-        console.warn('Notification permission denied')
+        console.warn('[v0] Notification permission denied - check browser settings')
+        setBrowserPermission('denied')
       }
     } else {
       // Turning OFF notifications
+      console.log('[v0] User disabling notifications')
       saveNotificationPreference(false)
       toggleNotifications(false)
+      // Dispatch storage event to notify other components
+      window.dispatchEvent(new Event('storage'))
     }
   }
 
