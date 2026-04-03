@@ -4,24 +4,33 @@ import { useState, useEffect } from 'react'
 import { Bell, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useNotifications } from '@/hooks/use-notifications'
+import { useAuthContext } from './auth-provider'
 import {
   requestNotificationPermission,
   getNotificationPermission,
   getNotificationPreference,
   saveNotificationPreference,
 } from '@/lib/push-notification-manager'
+import {
+  subscribeToPush,
+  unsubscribeFromPush,
+  supportsPushNotifications,
+} from '@/lib/push-subscription-manager'
 import { cn } from '@/lib/utils'
 
 export function NotificationsPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { user } = useAuthContext()
   const { isEnabled, toggleNotifications } = useNotifications()
   const [mounted, setMounted] = useState(false)
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission | null>(null)
   const [isRequestingPermission, setIsRequestingPermission] = useState(false)
+  const [supportsPush, setSupportsPush] = useState(false)
 
   useEffect(() => {
     setMounted(true)
     const permission = getNotificationPermission()
     setBrowserPermission(permission || null)
+    setSupportsPush(supportsPushNotifications())
   }, [])
 
   const handleToggleNotifications = async () => {
@@ -37,6 +46,16 @@ export function NotificationsPopup({ isOpen, onClose }: { isOpen: boolean; onClo
         saveNotificationPreference(true)
         toggleNotifications(true)
         setBrowserPermission('granted')
+        
+        // Subscribe to push notifications if supported
+        if (supportsPush && user?.uid) {
+          console.log('[v0] Subscribing to Web Push API')
+          const subscribed = await subscribeToPush(user.uid)
+          if (subscribed) {
+            console.log('[v0] Successfully subscribed to push notifications')
+          }
+        }
+        
         // Dispatch storage event to notify other components
         window.dispatchEvent(new Event('storage'))
       } else {
@@ -48,6 +67,13 @@ export function NotificationsPopup({ isOpen, onClose }: { isOpen: boolean; onClo
       console.log('[v0] User disabling notifications')
       saveNotificationPreference(false)
       toggleNotifications(false)
+      
+      // Unsubscribe from push notifications
+      if (user?.uid) {
+        console.log('[v0] Unsubscribing from Web Push API')
+        await unsubscribeFromPush(user.uid)
+      }
+      
       // Dispatch storage event to notify other components
       window.dispatchEvent(new Event('storage'))
     }
