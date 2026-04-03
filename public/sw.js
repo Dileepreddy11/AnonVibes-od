@@ -1,30 +1,62 @@
-// Service Worker for handling push notifications
+// Service Worker for handling push notifications and messages from the app
 // This allows notifications to be displayed even when the app is closed
 
-self.addEventListener('push', (event) => {
-  const data = event.data.json();
-  
-  const options = {
-    body: data.body || 'AnonVibes notification',
-    icon: '/icon-192x192.png',
-    badge: '/icon-96x96.png',
-    tag: data.tag || 'notification',
-    requireInteraction: false,
-    actions: [
-      {
-        action: 'open',
-        title: 'Open',
-      },
-      {
-        action: 'close',
-        title: 'Close',
-      },
-    ],
-  };
+// Handle messages from the client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const payload = event.data.payload;
+    
+    const options = {
+      body: payload.body || 'AnonVibes notification',
+      icon: payload.icon || '/icon-192x192.png',
+      badge: '/icon-96x96.png',
+      tag: payload.tag || 'notification',
+      requireInteraction: false,
+      actions: [
+        {
+          action: 'open',
+          title: 'Open',
+        },
+        {
+          action: 'close',
+          title: 'Close',
+        },
+      ],
+    };
 
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'AnonVibes', options)
-  );
+    self.registration.showNotification(payload.title || 'AnonVibes', options);
+  }
+});
+
+// Handle push notifications (for future Web Push API integration)
+self.addEventListener('push', (event) => {
+  try {
+    const data = event.data.json();
+    
+    const options = {
+      body: data.body || 'AnonVibes notification',
+      icon: data.icon || '/icon-192x192.png',
+      badge: '/icon-96x96.png',
+      tag: data.tag || 'notification',
+      requireInteraction: false,
+      actions: [
+        {
+          action: 'open',
+          title: 'Open',
+        },
+        {
+          action: 'close',
+          title: 'Close',
+        },
+      ],
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'AnonVibes', options)
+    );
+  } catch (error) {
+    console.error('Error handling push event:', error);
+  }
 });
 
 // Handle notification clicks
