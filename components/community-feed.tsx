@@ -113,17 +113,94 @@ export function CommunityFeed() {
         username={username}
       />
       
-      <main className="flex-1 w-full lg:overflow-hidden">
-        <div className="mx-auto max-w-4xl w-full px-4 py-4 flex flex-col lg:h-full">
-          <div className="grid gap-4 lg:grid-cols-[1fr,280px] lg:h-full">
+      {/* Mobile Layout */}
+      <main className="flex-1 w-full lg:hidden overflow-y-auto">
+        <div className="mx-auto max-w-4xl w-full px-4 py-4">
+          <div className="flex flex-col gap-4">
+            {/* Post Form */}
+            <div>
+              <PostForm onSubmit={handleCreatePost} disabled={!user} />
+            </div>
+
+            {/* Mood Filter + Archive Button */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex-1 overflow-x-auto pb-1">
+                <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
+              </div>
+              {archivedPosts.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowArchive(true)}
+                  className="flex-shrink-0 gap-1.5 text-xs"
+                >
+                  <Archive className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Archive</span>
+                  <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-medium">
+                    {archivedPosts.length}
+                  </span>
+                </Button>
+              )}
+            </div>
+
+            {/* Posts - Normal Flow */}
+            <PostList
+              posts={posts}
+              loading={postsLoading}
+              error={postsError}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+              onLoadMore={loadMore}
+              userId={user?.uid}
+              username={username}
+              onReport={handleReport}
+              onCommentAdded={incrementCommentCount}
+              hasUserReported={hasUserReported}
+            />
+            
+            {/* Community Mood & Guidelines */}
+            <div className="space-y-3 pt-3 border-t">
+              <MoodStats />
+              <div className="rounded-xl border bg-card p-3">
+                <h3 className="mb-2 font-semibold text-card-foreground text-sm">
+                  Community Guidelines
+                </h3>
+                <ul className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-primary font-medium">1.</span>
+                    Be kind & supportive
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-primary font-medium">2.</span>
+                    Respect anonymity
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-primary font-medium">3.</span>
+                    Share genuinely
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-primary font-medium">4.</span>
+                    Report harmful content
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Desktop Layout */}
+      <main className="hidden lg:flex lg:flex-1 w-full lg:overflow-hidden">
+        <div className="mx-auto max-w-4xl w-full px-4 py-4 flex flex-col h-full">
+          <div className="grid gap-4 grid-cols-[1fr,280px] h-full">
             {/* Main Content */}
-            <div className="flex flex-col gap-4 lg:h-full lg:overflow-hidden">
-              {/* Post Form - Fixed */}
+            <div className="flex flex-col gap-4 h-full overflow-hidden">
+              {/* Post Form */}
               <div>
                 <PostForm onSubmit={handleCreatePost} disabled={!user} />
               </div>
 
-              {/* Mood Filter + Archive Button - Fixed */}
+              {/* Mood Filter + Archive Button */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="flex-1 overflow-x-auto pb-1">
                   <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
@@ -144,56 +221,26 @@ export function CommunityFeed() {
                 )}
               </div>
 
-              {/* Posts - Scrollable Container (Desktop Only) */}
-              <div className="lg:flex-1 lg:overflow-y-auto lg:scrollbar-thin lg:min-h-0">
-                <div className="lg:pr-2">
-                  <PostList
-                    posts={posts}
-                    loading={postsLoading}
-                    error={postsError}
-                    hasMore={hasMore}
-                    loadingMore={loadingMore}
-                    onLoadMore={loadMore}
-                    userId={user?.uid}
-                    username={username}
-                    onReport={handleReport}
-                    onCommentAdded={incrementCommentCount}
-                    hasUserReported={hasUserReported}
-                  />
-                </div>
-              </div>
-              
-              {/* Mobile Community Mood & Guidelines - Below posts */}
-              <div className="lg:hidden space-y-3 pt-3 border-t flex-shrink-0">
-                <MoodStats />
-                <div className="rounded-xl border bg-card p-3">
-                  <h3 className="mb-2 font-semibold text-card-foreground text-sm">
-                    Community Guidelines
-                  </h3>
-                  <ul className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">1.</span>
-                      Be kind & supportive
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">2.</span>
-                      Respect anonymity
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">3.</span>
-                      Share genuinely
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-primary font-medium">4.</span>
-                      Report harmful content
-                    </li>
-                  </ul>
-                </div>
+              {/* Posts - Scrollable Container */}
+              <div className="flex-1 overflow-y-auto scrollbar-thin min-h-0 pr-2">
+                <PostList
+                  posts={posts}
+                  loading={postsLoading}
+                  error={postsError}
+                  hasMore={hasMore}
+                  loadingMore={loadingMore}
+                  onLoadMore={loadMore}
+                  userId={user?.uid}
+                  username={username}
+                  onReport={handleReport}
+                  onCommentAdded={incrementCommentCount}
+                  hasUserReported={hasUserReported}
+                />
               </div>
             </div>
 
-            {/* Sidebar - Desktop Only */}
-            <aside className="hidden lg:flex lg:flex-col lg:min-h-0">
+            {/* Sidebar */}
+            <aside className="flex flex-col min-h-0 overflow-hidden">
               <div className="space-y-4 overflow-y-auto scrollbar-thin">
                 <MoodStats />
 
