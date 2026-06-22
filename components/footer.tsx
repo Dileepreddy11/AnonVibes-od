@@ -5,7 +5,7 @@ import { Heart } from 'lucide-react'
 
 export function Footer() {
   return (
-    <footer className="border-t bg-background py-8 mt-12">
+    <footer className="border-t bg-background py-8 mt-0">
       <div className="mx-auto max-w-4xl px-4">
         <div className="grid gap-8 md:grid-cols-2">
           {/* Brand Section */}
