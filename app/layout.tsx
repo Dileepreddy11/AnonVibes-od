@@ -74,6 +74,24 @@ export const metadata: Metadata = {
   },
 }
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AnonVibes",
+  "description": "An anonymous social platform where users can express their thoughts, feelings, and emotions freely without revealing their identity.",
+  "url": "https://anonvibes.vercel.app",
+  "applicationCategory": "SocialNetworking",
+  "creator": {
+    "@type": "Person",
+    "name": "Dileep Reddy Sunkireddy"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -81,6 +99,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      </head>
       <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"

@@ -106,6 +106,17 @@ export default function AboutUsPage() {
               </p>
             </section>
 
+            {/* Creator Section */}
+            <section className="space-y-4 mt-12 p-6 rounded-lg border bg-primary/5">
+              <h2 className="text-xl font-semibold text-foreground">About the Creator</h2>
+              <p className="leading-relaxed">
+                AnonVibes was created by <span className="font-semibold">Dileep Reddy Sunkireddy</span>, a passionate developer dedicated to building meaningful digital experiences. This platform was born from a vision to create a safe, judgment-free space where people can express their authentic selves anonymously.
+              </p>
+              <p className="leading-relaxed">
+                The philosophy behind AnonVibes is simple: emotions are universal, but the pressure to hide them isn&apos;t always necessary. By removing identity from the equation, we enable genuine human connection and authentic emotional sharing.
+              </p>
+            </section>
+
             {/* Contact Section */}
             <section className="space-y-4 mt-12 p-6 rounded-lg border bg-card">
               <h3 className="text-lg font-semibold text-foreground">Have Questions?</h3>
