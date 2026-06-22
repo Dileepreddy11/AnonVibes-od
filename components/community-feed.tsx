@@ -95,7 +95,7 @@ export function CommunityFeed() {
   }
 
   return (
-    <div className="h-screen bg-background flex flex-col">
+    <div className="bg-background flex flex-col min-h-screen lg:h-screen">
       <Header />
       
       {/* Notification System Initializer */}
@@ -113,11 +113,11 @@ export function CommunityFeed() {
         username={username}
       />
       
-      <main className="flex-1 w-full overflow-hidden">
-        <div className="h-full mx-auto max-w-4xl w-full px-4 py-4 flex flex-col">
-          <div className="grid gap-4 lg:grid-cols-[1fr,280px] h-full">
+      <main className="flex-1 w-full lg:overflow-hidden">
+        <div className="mx-auto max-w-4xl w-full px-4 py-4 flex flex-col lg:h-full">
+          <div className="grid gap-4 lg:grid-cols-[1fr,280px] lg:h-full">
             {/* Main Content */}
-            <div className="flex flex-col gap-4 h-full overflow-hidden">
+            <div className="flex flex-col gap-4 lg:h-full lg:overflow-hidden">
               {/* Post Form - Fixed */}
               <div>
                 <PostForm onSubmit={handleCreatePost} disabled={!user} />
@@ -144,9 +144,9 @@ export function CommunityFeed() {
                 )}
               </div>
 
-              {/* Posts - Scrollable Container */}
-              <div className="flex-1 overflow-y-auto scrollbar-thin min-h-0">
-                <div className="pr-2">
+              {/* Posts - Scrollable Container (Desktop Only) */}
+              <div className="lg:flex-1 lg:overflow-y-auto lg:scrollbar-thin lg:min-h-0">
+                <div className="lg:pr-2">
                   <PostList
                     posts={posts}
                     loading={postsLoading}
@@ -193,7 +193,7 @@ export function CommunityFeed() {
             </div>
 
             {/* Sidebar - Desktop Only */}
-            <aside className="hidden lg:flex flex-col min-h-0">
+            <aside className="hidden lg:flex lg:flex-col lg:min-h-0">
               <div className="space-y-4 overflow-y-auto scrollbar-thin">
                 <MoodStats />
 
