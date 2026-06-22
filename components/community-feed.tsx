@@ -95,7 +95,7 @@ export function CommunityFeed() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col">
       <Header />
       
       {/* Notification System Initializer */}
@@ -113,18 +113,18 @@ export function CommunityFeed() {
         username={username}
       />
       
-      <main className="flex-1 w-full">
-        <div className="mx-auto max-w-4xl w-full px-4 py-4">
-          <div className="grid gap-4 lg:grid-cols-[1fr,280px]">
+      <main className="flex-1 w-full overflow-hidden">
+        <div className="h-full mx-auto max-w-4xl w-full px-4 py-4 flex flex-col">
+          <div className="grid gap-4 lg:grid-cols-[1fr,280px] h-full">
             {/* Main Content */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 h-full overflow-hidden">
               {/* Post Form - Fixed */}
               <div>
                 <PostForm onSubmit={handleCreatePost} disabled={!user} />
               </div>
 
               {/* Mood Filter + Archive Button - Fixed */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="flex-1 overflow-x-auto pb-1">
                   <MoodFilter selected={moodFilter} onSelect={setMoodFilter} />
                 </div>
@@ -144,25 +144,27 @@ export function CommunityFeed() {
                 )}
               </div>
 
-              {/* Posts - Scrollable */}
-              <div className="scrollbar-thin">
-                <PostList
-                  posts={posts}
-                  loading={postsLoading}
-                  error={postsError}
-                  hasMore={hasMore}
-                  loadingMore={loadingMore}
-                  onLoadMore={loadMore}
-                  userId={user?.uid}
-                  username={username}
-                  onReport={handleReport}
-                  onCommentAdded={incrementCommentCount}
-                  hasUserReported={hasUserReported}
-                />
+              {/* Posts - Scrollable Container */}
+              <div className="flex-1 overflow-y-auto scrollbar-thin min-h-0">
+                <div className="pr-2">
+                  <PostList
+                    posts={posts}
+                    loading={postsLoading}
+                    error={postsError}
+                    hasMore={hasMore}
+                    loadingMore={loadingMore}
+                    onLoadMore={loadMore}
+                    userId={user?.uid}
+                    username={username}
+                    onReport={handleReport}
+                    onCommentAdded={incrementCommentCount}
+                    hasUserReported={hasUserReported}
+                  />
+                </div>
               </div>
               
               {/* Mobile Community Mood & Guidelines - Below posts */}
-              <div className="lg:hidden space-y-3 pt-3 border-t">
+              <div className="lg:hidden space-y-3 pt-3 border-t flex-shrink-0">
                 <MoodStats />
                 <div className="rounded-xl border bg-card p-3">
                   <h3 className="mb-2 font-semibold text-card-foreground text-sm">
@@ -191,12 +193,12 @@ export function CommunityFeed() {
             </div>
 
             {/* Sidebar - Desktop Only */}
-            <aside className="hidden lg:block">
-              <div className="space-y-4 sticky top-20">
+            <aside className="hidden lg:flex flex-col min-h-0">
+              <div className="space-y-4 overflow-y-auto scrollbar-thin">
                 <MoodStats />
 
                 {/* Community Guidelines */}
-                <div className="rounded-xl border bg-card p-4">
+                <div className="rounded-xl border bg-card p-4 flex-shrink-0">
                   <h3 className="mb-3 font-semibold text-card-foreground">
                     Community Guidelines
                   </h3>
