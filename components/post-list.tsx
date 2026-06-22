@@ -50,6 +50,11 @@ export function PostList({
   const [localReportCounts, setLocalReportCounts] = useState<Record<string, number>>({})
   const [localReportedPosts, setLocalReportedPosts] = useState<Set<string>>(new Set())
 
+  // Reset to page 0 when posts array changes (e.g., when filter is applied)
+  useEffect(() => {
+    setCurrentPage(0)
+  }, [posts.length, posts[0]?.id])
+
   // Calculate pagination
   const startIndex = currentPage * POSTS_PER_PAGE
   const endIndex = startIndex + POSTS_PER_PAGE
