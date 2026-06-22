@@ -51,9 +51,14 @@ export function Footer() {
 
         {/* Divider */}
         <div className="border-t mt-8 pt-8">
-          <p className="text-sm text-muted-foreground text-center">
-            © 2026 AnonVibes. All rights reserved.
-          </p>
+          <div className="space-y-2 text-center">
+            <p className="text-sm text-muted-foreground">
+              © 2026 AnonVibes. All rights reserved.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Built by Dileep Reddy Sunkireddy
+            </p>
+          </div>
         </div>
       </div>
     </footer>
