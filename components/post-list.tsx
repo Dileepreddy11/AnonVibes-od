@@ -6,9 +6,11 @@ import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import type { Post } from '@/lib/types'
 import type { ReportReason } from '@/lib/moderation'
-import { MessageSquareOff, RefreshCw, Flag, Check, X } from 'lucide-react'
 import { REPORT_REASONS, REPORT_THRESHOLD } from '@/lib/moderation'
 import { cn } from '@/lib/utils'
+import { MessageSquareOff, RefreshCw, Flag, Check, X, ChevronLeft, ChevronRight } from 'lucide-react'
+
+const POSTS_PER_PAGE = 10
 
 interface PostListProps {
   posts: Post[]
@@ -37,27 +39,24 @@ export function PostList({
   onCommentAdded,
   hasUserReported,
 }: PostListProps) {
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const [currentPage, setCurrentPage] = useState(0)
   const [reportingPostId, setReportingPostId] = useState<string | null>(null)
   const [selectedReason, setSelectedReason] = useState<ReportReason | null>(null)
   const [isReporting, setIsReporting] = useState(false)
   const [reportError, setReportError] = useState<string | null>(null)
   const [reportSuccess, setReportSuccess] = useState(false)
 
-  const handleObserver = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const [entry] = entries
-      if (entry.isIntersecting && hasMore && !loadingMore) {
-        onLoadMore()
-      }
-    },
-    [hasMore, loadingMore, onLoadMore]
-  )
-
   // Track local report counts for immediate UI updates
   const [localReportCounts, setLocalReportCounts] = useState<Record<string, number>>({})
   const [localReportedPosts, setLocalReportedPosts] = useState<Set<string>>(new Set())
+
+  // Calculate pagination
+  const startIndex = currentPage * POSTS_PER_PAGE
+  const endIndex = startIndex + POSTS_PER_PAGE
+  const displayedPosts = posts.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE)
+  const canGoNext = currentPage < totalPages - 1
+  const canGoPrevious = currentPage > 0
 
   const handleReportSubmit = async () => {
     if (!reportingPostId || !selectedReason) return
@@ -91,25 +90,19 @@ export function PostList({
     return localReportedPosts.has(post.id) || (userId ? hasUserReported(post, userId) : false)
   }
 
-  useEffect(() => {
-    if (observerRef.current) {
-      observerRef.current.disconnect()
+  const handleNextPage = () => {
+    if (canGoNext) {
+      setCurrentPage(prev => prev + 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
+  }
 
-    observerRef.current = new IntersectionObserver(handleObserver, {
-      threshold: 0.1,
-    })
-
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current)
+  const handlePreviousPage = () => {
+    if (canGoPrevious) {
+      setCurrentPage(prev => prev - 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect()
-      }
-    }
-  }, [handleObserver])
+  }
 
   if (loading) {
     return (
@@ -154,7 +147,7 @@ export function PostList({
 
   return (
     <div className="space-y-4">
-      {posts.map((post, index) => (
+      {displayedPosts.map((post, index) => (
         <PostCard
           key={post.id}
           post={{ ...post, reportCount: getReportCount(post) }}
@@ -168,18 +161,48 @@ export function PostList({
         />
       ))}
 
-      <div ref={loadMoreRef} className="py-4">
-        {loadingMore && (
-          <div className="flex justify-center">
-            <Spinner className="h-6 w-6" />
+      {/* Pagination Controls */}
+      {posts.length > POSTS_PER_PAGE && (
+        <div className="py-6 flex items-center justify-between gap-4 px-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviousPage}
+            disabled={!canGoPrevious}
+            className="gap-2 transition-all duration-200"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Previous</span>
+          </Button>
+
+          <div className="text-center text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{currentPage + 1}</span>
+            <span> / {totalPages}</span>
+            <span className="block text-xs mt-1">
+              Showing {startIndex + 1}–{Math.min(endIndex, posts.length)} of {posts.length} posts
+            </span>
           </div>
-        )}
-        {!hasMore && posts.length > 0 && (
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={!canGoNext}
+            className="gap-2 transition-all duration-200"
+          >
+            <span className="hidden sm:inline">Next</span>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {posts.length === 0 && !loading && !error && (
+        <div className="py-4">
           <p className="text-center text-sm text-muted-foreground">
-            You&apos;ve reached the end. Thanks for being here!
+            No posts available
           </p>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Report Modal - Global Level */}
       {reportingPostId && (
